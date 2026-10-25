@@ -58,7 +58,7 @@ const system = sent.messages[0].content
 assert.match(system, /portfolio website of Priya\./)
 assert.match(system, /TEXT FROM THE OWNER'S WEBSITE:\nPriya Raman/)
 assert.ok(!/KNOWLEDGE FROM THE OWNER/.test(system), 'empty template adds no extra section')
-assert.ok(system.length < 12500, 'site text capped')
+assert.ok(system.split("TEXT FROM THE OWNER'S WEBSITE:")[1].trim().length <= 11000, 'site text capped at 11,000 chars')
 assert.match(system, /FOLLOWUPS: /)
 assert.ok(sent.messages.length <= 9, 'history trimmed to 8 + system')
 assert.ok(sent.messages.slice(1).every((m) => m.content.length <= 600), 'messages capped at 600 chars')
