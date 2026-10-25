@@ -407,7 +407,12 @@ input:focus { outline:none; border-color:var(--accent); }
             page: this.cfg.readSite ? await readSite().catch(() => '') : '',
           }),
         })
-        if (!res.ok || !res.body) throw new Error((await res.json().catch(() => ({}))).error || 'failed')
+        if (!res.ok || !res.body) {
+          const err = (await res.json().catch(() => ({}))).error || 'failed'
+          if (err === 'forbidden')
+            console.warn(`Glance: ${location.origin} is not allowed by ${new URL(this.cfg.api).origin}. Add it to ALLOWED_ORIGINS in that Vercel project and redeploy.`)
+          throw new Error(err)
+        }
         const reader = res.body.getReader()
         const dec = new TextDecoder()
         for (;;) {
@@ -432,7 +437,9 @@ input:focus { outline:none; border-color:var(--accent); }
         const reach = this.cfg.contact ? ` You can reach ${this.cfg.name} at ${this.cfg.contact}.` : ''
         bubble.classList.remove('wait')
         bubble.textContent =
-          e.message === 'no_knowledge'
+          e.message === 'forbidden'
+            ? `I'm not set up for this site yet.${reach}`
+            : e.message === 'no_knowledge'
             ? `I don't have anything to go on yet.${reach}`
             : e.message === 'offline'
             ? `I'm offline right now.${reach}`

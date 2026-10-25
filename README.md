@@ -10,13 +10,13 @@ A floating AI assistant for your portfolio, with a little robot that has moods. 
 
 **Live demo:** [glance-chat.vercel.app](https://glance-chat.vercel.app). Also running on [sudhanshu-patil.vercel.app](https://sudhanshu-patil.vercel.app) (bottom-right corner).
 
-## Setup in 4 steps
+## Setup in 3 steps
 
 1. **Get a free Groq API key.** Sign in at [console.groq.com/keys](https://console.groq.com/keys), click **Create API Key**, and copy it (it starts with `gsk_`). No card needed.
 
-2. **Deploy your copy.** Click the button and paste the key when Vercel asks for `GROQ_API_KEY`. Vercel copies this repo into your GitHub account and deploys it.
+2. **Deploy your copy.** Click the button. Vercel asks for two values: paste the key into `GROQ_API_KEY`, and your portfolio's address into `ALLOWED_ORIGINS`, for example `https://yourname.dev`. Only the sites you list can use your robot and your free quota. Testing locally too? Add it after a comma: `https://yourname.dev,http://localhost:5173`. Vercel copies this repo into your GitHub account and deploys it.
 
-   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&env=GROQ_API_KEY&envDescription=Your%20free%20key%20from%20console.groq.com%2Fkeys.%20Nothing%20else%20is%20needed%3A%20Glance%20reads%20your%20portfolio%20by%20itself%20once%20you%20add%20its%20script%20tag.&envLink=https%3A%2F%2Fconsole.groq.com%2Fkeys&project-name=glance-chat&repository-name=glance-chat)
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&env=GROQ_API_KEY,ALLOWED_ORIGINS&envDescription=GROQ_API_KEY%3A%20your%20free%20key%20from%20console.groq.com%2Fkeys.%20ALLOWED_ORIGINS%3A%20your%20portfolio%27s%20address%2C%20like%20https%3A%2F%2Fyourname.dev%20%28add%20more%20separated%20by%20commas%2C%20e.g.%20http%3A%2F%2Flocalhost%3A5173%20for%20testing%29.%20Glance%20reads%20your%20site%20by%20itself.&envLink=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat%23setup-in-3-steps&project-name=glance-chat&repository-name=glance-chat)
 
 3. **Add it to your portfolio.** Paste this just before `</body>` in your site's HTML, using your deployment's address (in React or Vite apps that's `index.html`):
 
@@ -24,9 +24,9 @@ A floating AI assistant for your portfolio, with a little robot that has moods. 
    <script defer src="https://YOUR-PROJECT.vercel.app/widget.js" data-name="Your Name"></script>
    ```
 
-4. **Lock it to your site** (recommended). In Vercel, open Settings, then Environment Variables, and add `ALLOWED_ORIGINS` with your site's address, for example `https://yourname.dev`. This stops other sites from using your bot and your free quota. Redeploy once after adding it.
+That's it. Open your deployment's address after step 2 and it walks you through step 3 with your snippet already filled in, and lists the sites it accepts.
 
-That's it. Open your deployment's address after step 2 and it walks you through steps 3 and 4 with your snippet already filled in.
+**Changing your sites later:** edit `ALLOWED_ORIGINS` in your Vercel project's Settings, then Environment Variables, and redeploy. If the robot replies "I'm not set up for this site yet", the page's address is missing from that list; the browser console names the exact address to add.
 
 **How it fits together:** your portfolio stays wherever it is hosted. Your Glance deployment is a small separate service that serves the robot and talks to Groq. The script tag is the only link between them.
 
@@ -119,7 +119,7 @@ Each question is sent to Groq's `openai/gpt-oss-120b` together with your site's 
 |---|---|---|
 | `GROQ_API_KEY` | Yes | Your free Groq key |
 | `RESUME_TEXT` | No | Extra detail that isn't on your site: resume, project notes, FAQs. `KNOWLEDGE` is accepted as an alias |
-| `ALLOWED_ORIGINS` | Recommended | Comma-separated sites allowed to use the bot |
+| `ALLOWED_ORIGINS` | Yes (asked at deploy) | Comma-separated sites allowed to use the bot, e.g. `https://yourname.dev,http://localhost:5173`. Your deployment's own address is always allowed |
 | `GROQ_MODEL` | No | Override the main model |
 
 ## Run it locally

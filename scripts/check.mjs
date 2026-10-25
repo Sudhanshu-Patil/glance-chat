@@ -1,7 +1,7 @@
 // Offline checks for api/chat.js with Groq mocked. Run: npm run check
 import assert from 'node:assert/strict'
 
-process.env.ALLOWED_ORIGINS = 'https://me.dev'
+process.env.ALLOWED_ORIGINS = ' me.dev/ , http://localhost:5173' // typed loosely on purpose
 const { GET, POST, OPTIONS } = await import('../api/chat.js')
 
 const PAGE = 'Priya Raman. Data engineer. Built a streaming pipeline at Acme Logistics. Contact priya@example.com'
@@ -19,12 +19,16 @@ assert.equal(pre.status, 204)
 assert.equal(pre.headers.get('access-control-allow-origin'), 'https://me.dev')
 assert.equal((await POST(req(hi, { origin: 'https://evil.example' }))).status, 403)
 assert.equal((await POST(req(hi, { origin: null }))).status, 403, 'locked bots refuse requests with no Origin')
+assert.notEqual((await POST(req(hi, { origin: 'http://localhost:5173', ip: '2.2.2.2' }))).status, 403, 'second listed origin works')
+const own = new Request('http://glance.example/api/chat', { method: 'POST', headers: { origin: 'https://glance.example', host: 'glance.example', 'x-forwarded-for': '3.3.3.3' }, body: JSON.stringify(hi) })
+assert.notEqual((await POST(own)).status, 403, "the deployment's own address is always allowed")
 
 // The untouched template knows nothing on its own
 const info = await GET(new Request('http://x/api/chat', { headers: { origin: 'https://me.dev' } })).json()
 assert.equal(info.source, 'none')
 assert.equal(info.name, '')
 assert.equal(info.locked, true)
+assert.deepEqual(info.origins, ['https://me.dev', 'http://localhost:5173'], 'origins are normalised')
 
 // No key
 delete process.env.GROQ_API_KEY

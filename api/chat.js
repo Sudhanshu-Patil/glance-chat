@@ -35,12 +35,28 @@ ${extra ? `\nKNOWLEDGE FROM THE OWNER:\n${extra}\n` : ''}${page ? `\nTEXT FROM T
 }
 
 // Comma-separated list of sites allowed to embed the widget, e.g. "https://me.dev,http://localhost:5173".
-// Unset means any site may call it (fine for trying it out, but set it so others can't spend your quota).
-const ALLOWED = (process.env.ALLOWED_ORIGINS || '*').split(',').map((o) => o.trim())
+// The Deploy button asks for it. Unset means any site may call it. Forgiving about how it's typed:
+// "me.dev/" becomes "https://me.dev". The deployment's own address is always allowed, for its setup page.
+const ALLOWED = (process.env.ALLOWED_ORIGINS || '*')
+  .split(',')
+  .map((o) => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean)
+  .map((o) => (o === '*' || /^https?:\/\//i.test(o) ? o : `https://${o}`).toLowerCase())
+const OPEN = ALLOWED.includes('*')
+
+// The caller's origin if it may use this bot, otherwise ''.
+function allowedOrigin(req) {
+  const origin = (req.headers.get('origin') || '').toLowerCase()
+  if (!origin) return ''
+  let host = ''
+  try {
+    host = new URL(origin).host
+  } catch {}
+  return OPEN || ALLOWED.includes(origin) || host === req.headers.get('host') ? origin : ''
+}
 
 function cors(req) {
-  const origin = req.headers.get('origin') || ''
-  const allow = ALLOWED.includes('*') ? '*' : ALLOWED.includes(origin) ? origin : ALLOWED[0]
+  const allow = OPEN ? '*' : allowedOrigin(req) || ALLOWED[0]
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -70,7 +86,8 @@ export function GET(req) {
       source: SOURCE,
       repo: owner && slug ? `https://github.com/${owner}/${slug}` : '',
       branch: process.env.VERCEL_GIT_COMMIT_REF || 'main',
-      locked: !ALLOWED.includes('*'),
+      locked: !OPEN,
+      origins: OPEN ? [] : ALLOWED,
       keySet: Boolean(process.env.GROQ_API_KEY),
     },
     { headers: cors(req) },
@@ -87,7 +104,7 @@ export async function POST(req) {
 
   // Once locked, only the listed sites may ask. Browsers always send Origin on these requests,
   // so a missing one means a script, which could otherwise feed the bot arbitrary "website text".
-  if (!ALLOWED.includes('*') && !ALLOWED.includes(req.headers.get('origin') || '')) return json({ error: 'forbidden' }, 403)
+  if (!OPEN && !allowedOrigin(req)) return json({ error: 'forbidden' }, 403)
 
   const key = process.env.GROQ_API_KEY
   if (!key) return json({ error: 'offline' }, 503)
