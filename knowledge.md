@@ -85,6 +85,15 @@ Pipeline: Parse JD > Match skills > Tailor > DOCX export
 - 37 tests and Playwright end-to-end in 3-stage CI
 Links: [Live app](https://ats-ready.onrender.com/)
 
+### Glance: Open-source AI assistant for any portfolio, with a robot that has moods
+Most portfolio chatbots need a paid API, a vector database and a React rewrite. This one needs a free key and a script tag.
+Pipeline: knowledge.md > Vercel function > Groq gpt-oss-120b > Fallback model > Streamed answer
+- Zero dependencies, Shadow DOM, works on any site
+- Happy, thinking, surprised, sad and sleepy moods
+- Origin lock and per-visitor rate limit for the free tier
+- Five-step setup with a one-click Vercel deploy
+Links: [Live demo](https://glance-chat.vercel.app) · [Code](https://github.com/Sudhanshu-Patil/glance-chat)
+
 ### Multi-tenant Chatbot Platform
 JWT auth, versioned prompts, file uploads, and one Responses API client that runs on OpenAI, Groq or Ollama.
 Links: [Live](https://chatbot-sooty-eight-42.vercel.app) · [Demo](https://drive.google.com/file/d/1g-iSS7p6ZR8o6qGr6mXd7UN8F8d7nIGj/view) · [Code](https://github.com/Sudhanshu-Patil/Chatbot)
