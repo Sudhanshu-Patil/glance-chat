@@ -4,38 +4,43 @@
 ;(() => {
   const script = document.currentScript
   if (!script || customElements.get('glance-chat')) return
-  const d = script.dataset
-  const name = d.name || 'me'
-  const cfg = {
-    name,
-    api: d.api || new URL('/api/chat', script.src).href,
-    accent: d.accent || '#bfe36b',
-    head: d.head || '#16181d',
-    shape: d.shape || 'rounded', // rounded | circle | square
-    position: d.position === 'left' ? 'left' : 'right',
-    theme: d.theme === 'light' ? 'light' : 'dark',
-    size: Math.min(Math.max(parseInt(d.size, 10) || 64, 44), 96),
-    title: d.title || `Ask about ${name}`,
-    greeting: d.greeting || `Hi, I can answer questions about ${name}'s experience, projects and skills.`,
-    hint: d.hint === 'off' ? '' : d.hint || `Questions about ${name}'s work? Ask me.`,
-    suggestions: (d.suggestions || `What does ${name} do?|What are ${name}'s best projects?|How can I contact ${name}?`)
-      .split('|')
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .slice(0, 4),
-    contact: d.contact || '',
+  // Options come from data-* attributes, or from Glance.mount({...}) for live previews.
+  function makeConfig(d) {
+    const name = d.name || 'me'
+    const accent = /^#[0-9a-f]{6}$/i.test(d.accent || '') ? d.accent : '#bfe36b'
+    // Text on accent-coloured bubbles: dark or white, whichever reads better.
+    const lum = accent
+      .slice(1)
+      .match(/../g)
+      .map((h) => parseInt(h, 16) / 255)
+      .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+      .reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0)
+    return {
+      name,
+      api: d.api || new URL('/api/chat', script.src).href,
+      accent,
+      head: /^#[0-9a-f]{6}$/i.test(d.head || '') ? d.head : '#16181d',
+      radius: { rounded: '31%', circle: '50%', square: '14%' }[d.shape] || '31%',
+      position: d.position === 'left' ? 'left' : 'right',
+      theme: d.theme === 'light' ? 'light' : 'dark',
+      size: Math.min(Math.max(parseInt(d.size, 10) || 64, 44), 96),
+      title: d.title || `Ask about ${name}`,
+      greeting: d.greeting || `Hi, I can answer questions about ${name}'s experience, projects and skills.`,
+      hint: d.hint === 'off' ? '' : d.hint || `Questions about ${name}'s work? Ask me.`,
+      suggestions: String(d.suggestions || `What does ${name} do?|What are ${name}'s best projects?|How can I contact ${name}?`)
+        .split('|')
+        .map((q) => q.trim())
+        .filter(Boolean)
+        .slice(0, 4),
+      contact: d.contact || '',
+      onAccent: lum > 0.4 ? '#0b0c0e' : '#ffffff',
+    }
   }
-
-  // Text on accent-coloured bubbles: dark or white, whichever reads better.
-  const rgb = (cfg.accent.replace('#', '').match(/../g) || ['bf', 'e3', '6b']).map((h) => parseInt(h, 16) / 255)
-  const lum = rgb.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)).reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0)
-  const onAccent = lum > 0.4 ? '#0b0c0e' : '#ffffff'
-  const radius = { rounded: '31%', circle: '50%', square: '14%' }[cfg.shape] || '31%'
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  const CSS = `
+  const css = (cfg) => `
 :host { all: initial; }
-.root { --accent:${cfg.accent}; --head:${cfg.head}; --on-accent:${onAccent}; --size:${cfg.size}px; --radius:${radius};
+.root { --accent:${cfg.accent}; --head:${cfg.head}; --on-accent:${cfg.onAccent}; --size:${cfg.size}px; --radius:${cfg.radius};
   --bg:#131418; --fg:#ecedee; --muted:#9a9da4; --line:rgba(255,255,255,.09); --bubble:#0b0c0e; --field:#0b0c0e;
   position:fixed; bottom:16px; ${cfg.position}:16px; z-index:2147483000; display:flex; flex-direction:column;
   align-items:${cfg.position === 'left' ? 'flex-start' : 'flex-end'}; gap:12px;
@@ -128,9 +133,10 @@ input:focus { outline:none; border-color:var(--accent); }
 
   class GlanceChat extends HTMLElement {
     connectedCallback() {
+      this.cfg ||= makeConfig(script.dataset)
       const root = this.attachShadow({ mode: 'open' })
-      root.innerHTML = `<style>${CSS}</style>
-<div class="root ${cfg.theme}" data-mood="idle">
+      root.innerHTML = `<style>${css(this.cfg)}</style>
+<div class="root ${this.cfg.theme}" data-mood="idle">
   <section class="panel" role="dialog" aria-label="">
     <header>${robot(true)}<div><p class="title"></p><p class="sub">Answers from this portfolio. Can make mistakes.</p></div>
       <button class="close" type="button" aria-label="Close chat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -146,13 +152,14 @@ input:focus { outline:none; border-color:var(--accent); }
       const $ = (s) => root.querySelector(s)
       this.ui = { root: $('.root'), panel: $('.panel'), list: $('.list'), form: $('form'), input: $('input'), send: $('.send'), avatar: $('.avatar'), hint: $('.hint') }
       const { panel, avatar, hint, input, send, form } = this.ui
-      panel.setAttribute('aria-label', cfg.title)
-      $('.title').textContent = cfg.title
-      avatar.setAttribute('aria-label', cfg.title)
-      hint.textContent = cfg.hint
-      this.messages = []
+      panel.setAttribute('aria-label', this.cfg.title)
+      $('.title').textContent = this.cfg.title
+      avatar.setAttribute('aria-label', this.cfg.title)
+      hint.textContent = this.cfg.hint
+      this.messages = this.messages || []
       this.busy = false
-      this.intro()
+      if (this.messages.length) this.replay()
+      else this.intro()
 
       avatar.addEventListener('click', () => this.toggle())
       hint.addEventListener('click', () => this.toggle(true))
@@ -170,8 +177,8 @@ input:focus { outline:none; border-color:var(--accent); }
       try {
         seen = sessionStorage.getItem('glance-hint') === '1'
       } catch {}
-      if (cfg.hint && !seen)
-        setTimeout(() => {
+      if (this.cfg.hint && !seen)
+        this.hintT = setTimeout(() => {
           if (this.isOpen) return
           hint.hidden = false
           this.flash('happy', 1400)
@@ -196,6 +203,12 @@ input:focus { outline:none; border-color:var(--accent); }
       this.back = setTimeout(() => (then ? then() : this.setMood(this.base || 'idle')), ms)
     }
 
+    // Removed (or re-mounted by Glance.mount): stop every timer and listener.
+    disconnectedCallback() {
+      this.off?.forEach((f) => f())
+      ;[this.back, this.blinkT, this.hintT].forEach(clearTimeout)
+    }
+
     // Blink, follow the cursor, glance around when idle, doze off after 30s without movement.
     alive() {
       if (reduced) return
@@ -204,13 +217,12 @@ input:focus { outline:none; border-color:var(--accent); }
       const head = avatar.querySelector('.head')
       let last = Date.now()
       let frame = 0
+      this.off = []
       const look = (dx, dy, tilt) => {
         gazes.forEach((g) => (g.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`))
         if (tilt !== undefined) head.style.transform = `rotate(${tilt.toFixed(1)}deg)`
       }
-      addEventListener(
-        'pointermove',
-        (e) => {
+      const onMove = (e) => {
           last = Date.now()
           if (this.mood === 'sleepy') this.flash('surprised', 450)
           if (frame) return
@@ -221,14 +233,14 @@ input:focus { outline:none; border-color:var(--accent); }
             const dx = e.clientX - (r.left + r.width / 2)
             const dy = e.clientY - (r.top + r.height / 2)
             const dist = Math.hypot(dx, dy) || 1
-            const reach = Math.min(dist / 160, 1) * (cfg.size / 64)
+            const reach = Math.min(dist / 160, 1) * (this.cfg.size / 64)
             look((dx / dist) * reach * 6, (dy / dist) * reach * 5, Math.max(-8, Math.min(8, dx / 50)))
           })
-        },
-        { passive: true },
-      )
+      }
+      addEventListener('pointermove', onMove, { passive: true })
+      this.off.push(() => removeEventListener('pointermove', onMove))
       const blink = () => {
-        setTimeout(() => {
+        this.blinkT = setTimeout(() => {
           if (this.mood !== 'sleepy') {
             root.classList.add('blink')
             setTimeout(() => root.classList.remove('blink'), 110)
@@ -238,16 +250,18 @@ input:focus { outline:none; border-color:var(--accent); }
         }, 2200 + Math.random() * 3300)
       }
       blink()
-      setInterval(() => {
+      const idle = setInterval(() => {
         const still = Date.now() - last
         if (this.mood !== 'idle') return
         if (still > 30000 && !this.isOpen) return this.setMood('sleepy')
         if (still > 3000 && Math.random() < 0.55) look(Math.random() * 12 - 6, Math.random() * 8 - 4)
       }, 1600)
+      this.off.push(() => clearInterval(idle))
     }
 
     // --- panel -------------------------------------------------------------
-    toggle(force) {
+    // quiet: open without the greeting animation or stealing focus (used for live previews).
+    toggle(force, quiet = false) {
       const open = force ?? !this.isOpen
       if (open === this.isOpen) return
       this.isOpen = open
@@ -259,9 +273,10 @@ input:focus { outline:none; border-color:var(--accent); }
         try {
           sessionStorage.setItem('glance-hint', '1')
         } catch {}
+        if (quiet) return
         this.flash('surprised', 300, () => this.flash('happy', 1000))
         setTimeout(() => input.focus(), 50)
-      } else avatar.focus()
+      } else if (!quiet) avatar.focus()
     }
 
     // --- messages ----------------------------------------------------------
@@ -284,8 +299,15 @@ input:focus { outline:none; border-color:var(--accent); }
       this.ui.list.append(box)
     }
     intro() {
-      this.ui.list.append(this.el('p', 'intro', cfg.greeting))
-      this.chips(cfg.suggestions)
+      this.ui.list.append(this.el('p', 'intro', this.cfg.greeting))
+      this.chips(this.cfg.suggestions)
+    }
+    // After a restyle (Glance.mount), redraw the conversation carried over from the old instance.
+    replay() {
+      for (const m of this.messages) this.ui.list.append(this.el('p', m.role === 'user' ? 'msg user' : 'msg bot', m.role === 'user' ? m.content : splitAnswer(m.content)[0]))
+      const last = this.messages.at(-1)
+      if (last.role === 'assistant') this.chips(splitAnswer(last.content)[1])
+      setTimeout(() => this.scroll())
     }
     scroll() {
       this.ui.list.scrollTop = this.ui.list.scrollHeight
@@ -309,7 +331,7 @@ input:focus { outline:none; border-color:var(--accent); }
 
       let out = ''
       try {
-        const res = await fetch(cfg.api, {
+        const res = await fetch(this.cfg.api, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: this.messages }),
@@ -332,11 +354,11 @@ input:focus { outline:none; border-color:var(--accent); }
         this.messages.push({ role: 'assistant', content: out })
         const asked = new Set(this.messages.filter((m) => m.role === 'user').map((m) => m.content))
         const next = splitAnswer(out)[1].filter((s) => !asked.has(s))
-        this.chips(next.length ? next : cfg.suggestions.filter((s) => !asked.has(s)).slice(0, 2))
+        this.chips(next.length ? next : this.cfg.suggestions.filter((s) => !asked.has(s)).slice(0, 2))
         this.flash('happy', 1500)
       } catch (e) {
         this.messages.pop()
-        const reach = cfg.contact ? ` You can reach ${cfg.name} at ${cfg.contact}.` : ''
+        const reach = this.cfg.contact ? ` You can reach ${this.cfg.name} at ${this.cfg.contact}.` : ''
         bubble.classList.remove('wait')
         bubble.textContent =
           e.message === 'offline'
@@ -355,6 +377,20 @@ input:focus { outline:none; border-color:var(--accent); }
   }
 
   customElements.define('glance-chat', GlanceChat)
-  const mount = () => document.body.append(document.createElement('glance-chat'))
-  document.body ? mount() : addEventListener('DOMContentLoaded', mount)
+
+  // Glance.mount({ accent: '#7c3aed', shape: 'circle', ... }) re-renders with new options; the
+  // demo page's configurator uses it. Options mirror the data-* attributes. Add data-manual to skip auto-mount.
+  function mount(opts = {}) {
+    const old = document.querySelector('glance-chat')
+    const open = opts.open ?? old?.isOpen
+    old?.remove()
+    const el = document.createElement('glance-chat')
+    el.cfg = makeConfig({ ...script.dataset, ...opts })
+    if (old && !old.busy) el.messages = old.messages
+    document.body.append(el)
+    if (open) el.toggle(true, true)
+    return el
+  }
+  window.Glance = { mount }
+  if (!('manual' in script.dataset)) document.body ? mount() : addEventListener('DOMContentLoaded', () => mount())
 })()

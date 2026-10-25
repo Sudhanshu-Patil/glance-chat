@@ -6,31 +6,147 @@
     <title>Glance | AI assistant for your portfolio</title>
     <meta name="description" content="A floating AI assistant with an expressive robot avatar that answers questions about you. Free stack: Vercel and Groq." />
     <style>
-      :root { color-scheme: dark; --accent: #bfe36b; }
+      :root { color-scheme: dark; --accent: #bfe36b; --line: rgba(255,255,255,.09); --muted: #9a9da4; }
+      * { box-sizing: border-box; }
       body { margin: 0; min-height: 100dvh; background: #0b0c0e; color: #ecedee; font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-      main { max-width: 720px; margin: 0 auto; padding: 96px 16px 160px; }
+      main { max-width: 760px; margin: 0 auto; padding: 88px 16px 180px; }
       h1 { font-size: clamp(2.2rem, 6vw, 3.4rem); line-height: 1.05; letter-spacing: -0.03em; margin: 0; }
       h1 span { color: var(--accent); }
-      p { color: #9a9da4; max-width: 60ch; }
-      h2 { font-size: 1.1rem; margin: 48px 0 12px; }
-      pre { overflow-x: auto; padding: 16px; border: 1px solid rgba(255,255,255,.09); border-radius: 12px; background: #131418; color: #ecedee; font-size: 13px; line-height: 1.5; }
+      h2 { font-size: 1.15rem; margin: 56px 0 6px; }
+      p { color: var(--muted); max-width: 62ch; }
       a { color: var(--accent); }
       code { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+      .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 22px; }
+      .preset { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 8px; font: inherit; font-size: 14px; color: inherit;
+        background: none; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; transition: border-color .2s; }
+      .preset:hover { border-color: var(--accent); }
+      .swatch { width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 4px var(--head); background: var(--eye); }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px 20px; }
+      label { display: grid; gap: 6px; font-size: 14px; font-weight: 500; }
+      label small { color: var(--muted); font-weight: 400; }
+      input[type=text], select { width: 100%; padding: 10px 12px; font: inherit; font-size: 14px; color: inherit; background: #131418;
+        border: 1px solid var(--line); border-radius: 10px; }
+      input[type=text]:focus, select:focus { outline: none; border-color: var(--accent); }
+      input[type=color] { width: 100%; height: 42px; padding: 3px; background: #131418; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+      input[type=range] { width: 100%; accent-color: var(--accent); }
+      .wide { grid-column: 1 / -1; }
+      .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+      .btn { padding: 10px 18px; font: inherit; font-size: 14px; font-weight: 600; color: #0b0c0e; background: var(--accent); border: 0; border-radius: 999px; cursor: pointer; }
+      .btn.ghost { color: inherit; background: none; border: 1px solid var(--line); }
+      .snippet { position: relative; margin-top: 12px; }
+      pre { overflow-x: auto; margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #131418; font-size: 13px; line-height: 1.6; }
+      .copy { position: absolute; top: 10px; right: 10px; padding: 6px 12px; font-size: 12px; }
+      .note { font-size: 13px; }
     </style>
   </head>
   <body>
     <main>
       <h1>A robot that <span>answers for you</span>.</h1>
-      <p>Glance is a floating assistant for your portfolio. It follows the cursor, blinks, gets happy, thinks, and answers visitors' questions using only what you put in <code>knowledge.md</code>. Try it in the corner.</p>
+      <p>Glance is a floating assistant for your portfolio. It follows the cursor, blinks, gets happy, thinks, and answers visitors' questions using only what you put in <code>knowledge.md</code>. Free to run on Vercel and Groq. Try it in the corner.</p>
 
-      <h2>Add it to any site</h2>
-      <pre><code id="snippet"></code></pre>
-      <p>Works on plain HTML, React, Next.js, Astro, WordPress or anything that can include a script tag. Setup guide on <a href="https://github.com/Sudhanshu-Patil/glance-chat">GitHub</a>.</p>
+      <h2>Make it yours</h2>
+      <p>Every change updates the robot live. The snippet below is ready to paste.</p>
+
+      <div class="presets" id="presets"></div>
+
+      <form class="grid" id="config" autocomplete="off">
+        <label>Name <input type="text" name="name" value="Sudhanshu" maxlength="40" /></label>
+        <label>Eye glow <input type="color" name="accent" value="#bfe36b" /></label>
+        <label>Head colour <input type="color" name="head" value="#16181d" /></label>
+        <label>Head shape
+          <select name="shape"><option value="rounded">Rounded</option><option value="circle">Circle</option><option value="square">Square</option></select>
+        </label>
+        <label>Size <small id="sizeOut">64 px</small> <input type="range" name="size" min="44" max="96" step="2" value="64" /></label>
+        <label>Corner
+          <select name="position"><option value="right">Bottom right</option><option value="left">Bottom left</option></select>
+        </label>
+        <label>Chat theme
+          <select name="theme"><option value="dark">Dark</option><option value="light">Light</option></select>
+        </label>
+        <label>Contact email <small>shown if the bot is offline</small> <input type="text" name="contact" placeholder="you@example.com" maxlength="80" /></label>
+        <label class="wide">Hint bubble <small>shown once per visit, or "off"</small> <input type="text" name="hint" placeholder="Questions about Sudhanshu's work? Ask me." maxlength="80" /></label>
+        <label class="wide">Starter questions <small>separate with |</small> <input type="text" name="suggestions" placeholder="What does Sudhanshu do?|What are Sudhanshu's best projects?|How can I contact Sudhanshu?" maxlength="200" /></label>
+      </form>
+
+      <div class="row">
+        <button class="btn" type="button" id="preview">Open the chat</button>
+        <button class="btn ghost" type="button" id="reset">Reset</button>
+      </div>
+
+      <h2>Add it to your site</h2>
+      <div class="snippet">
+        <pre><code id="snippet"></code></pre>
+        <button class="btn copy" type="button" id="copy">Copy</button>
+      </div>
+      <p class="note">Answers on this demo come from this deployment's <code>knowledge.md</code>. Your copy answers about you. Five-step setup on <a href="https://github.com/Sudhanshu-Patil/glance-chat">GitHub</a>.</p>
     </main>
-    <script>
-      document.getElementById('snippet').textContent =
-        `<script defer src="${location.origin}/widget.js"\n  data-name="Your Name"\n  data-accent="#bfe36b"><\/script>`
-    </script>
+
     <script defer src="/widget.js" data-name="Sudhanshu" data-contact="sudhanshupatil588@gmail.com"></script>
+    <script defer>
+      const form = document.getElementById('config')
+      const defaults = Object.fromEntries(new FormData(form))
+      const PRESETS = {
+        Lime: { accent: '#bfe36b', head: '#16181d', shape: 'rounded' },
+        Violet: { accent: '#a78bfa', head: '#1e1b2e', shape: 'circle' },
+        Ocean: { accent: '#38bdf8', head: '#0f1c2e', shape: 'rounded' },
+        Ember: { accent: '#fb923c', head: '#24140c', shape: 'square' },
+      }
+      const presets = document.getElementById('presets')
+      for (const [label, p] of Object.entries(PRESETS)) {
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'preset'
+        b.innerHTML = `<span class="swatch" style="--eye:${p.accent};--head:${p.head}"></span>${label}`
+        b.onclick = () => {
+          for (const [k, v] of Object.entries(p)) form.elements[k].value = v
+          apply()
+        }
+        presets.append(b)
+      }
+
+      const values = () => Object.fromEntries([...new FormData(form)].map(([k, v]) => [k, v.trim()]))
+      const attr = (k) => 'data-' + k
+
+      function snippet(v) {
+        const lines = [`<script defer src="${location.origin}/widget.js"`, `  data-name="${v.name || 'Your Name'}"`]
+        for (const [k, val] of Object.entries(v)) {
+          if (k === 'name' || !val || val === defaults[k]) continue
+          lines.push(`  ${attr(k)}="${val.replace(/"/g, '&quot;')}"`)
+        }
+        return lines.join('\n') + '><\/script>'
+      }
+
+      let t
+      function apply() {
+        clearTimeout(t)
+        t = setTimeout(() => {
+          const v = values()
+          document.getElementById('sizeOut').textContent = v.size + ' px'
+          document.getElementById('snippet').textContent = snippet(v)
+          document.documentElement.style.setProperty('--accent', v.accent)
+          if (window.Glance) Glance.mount(Object.fromEntries(Object.entries(v).filter(([, val]) => val)))
+        }, 120)
+      }
+
+      form.addEventListener('input', apply)
+      document.getElementById('preview').onclick = () => {
+        const el = document.querySelector('glance-chat')
+        el && el.toggle(!el.isOpen)
+      }
+      document.getElementById('reset').onclick = () => {
+        form.reset()
+        apply()
+      }
+      document.getElementById('copy').onclick = async (e) => {
+        try {
+          await navigator.clipboard.writeText(document.getElementById('snippet').textContent)
+          e.target.textContent = 'Copied'
+        } catch {
+          e.target.textContent = 'Select and copy'
+        }
+        setTimeout(() => (e.target.textContent = 'Copy'), 1600)
+      }
+      document.getElementById('snippet').textContent = snippet(values())
+    </script>
   </body>
 </html>

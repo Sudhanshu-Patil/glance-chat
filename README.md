@@ -1,5 +1,7 @@
 # Glance
 
+<p align="center"><img src="docs/demo.gif" alt="Glance robot following the cursor, answering a question, then switching colours and theme" width="344"></p>
+
 A floating AI assistant for your portfolio, with a little robot that has moods. It follows the cursor, blinks, gets happy, thinks while it answers, dozes off when you leave it alone, and answers visitors' questions using only what you write in `knowledge.md`.
 
 **Free to run.** It needs a free [Groq](https://console.groq.com/keys) API key and a free [Vercel](https://vercel.com) account. Nothing else, no database, no paid API.
@@ -30,6 +32,8 @@ That's it. Your deployment's home page is also a live demo with the snippet read
 
 ## Make the robot yours
 
+**Try every option live** in the configurator at [glance-chat.vercel.app](https://glance-chat.vercel.app): pick a preset or colours, shape, size, corner and theme, watch the robot change, and copy the generated snippet.
+
 Everything is set with attributes on the script tag. All are optional except `data-name`.
 
 | Attribute | Default | What it does |
@@ -47,6 +51,7 @@ Everything is set with attributes on the script tag. All are optional except `da
 | `data-suggestions` | three generic questions | Starter questions, separated by `\|` |
 | `data-contact` | none | Email shown if the bot is offline or fails |
 | `data-api` | `{script origin}/api/chat` | Custom endpoint, if you host the API elsewhere |
+| `data-manual` | off | Don't mount automatically; call `Glance.mount()` yourself |
 
 Example:
 
@@ -61,6 +66,16 @@ Example:
   data-suggestions="What does Alex build?|Which stack does Alex use?|Is Alex open to work?"
   data-contact="alex@example.com"></script>
 ```
+
+### Change it from JavaScript
+
+The script exposes `window.Glance.mount(options)`, which re-renders the robot with new options (same names as the attributes, without `data-`) and keeps the current conversation:
+
+```js
+Glance.mount({ accent: '#38bdf8', head: '#0f1c2e', shape: 'circle', theme: 'light', open: true })
+```
+
+Useful for matching a dark/light toggle on your site.
 
 ### Moods
 
