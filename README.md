@@ -6,7 +6,7 @@ A floating AI assistant for your portfolio, with a little robot that has moods. 
 
 **Works anywhere.** One script tag, no dependencies, no framework. Plain HTML, React, Next.js, Astro, WordPress, Webflow: if your site can include a script, it can have Glance. It renders in a Shadow DOM, so your site's CSS and the widget never clash.
 
-Live example: [sudhanshu-patil.vercel.app](https://sudhanshu-patil.vercel.app) (bottom-right corner).
+**Live demo:** [glance-chat.vercel.app](https://glance-chat.vercel.app). Also running on [sudhanshu-patil.vercel.app](https://sudhanshu-patil.vercel.app) (bottom-right corner).
 
 ## Setup in 5 steps
 
