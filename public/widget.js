@@ -123,6 +123,16 @@ input:focus { outline:none; border-color:var(--accent); }
   const robot = (small) =>
     `<span class="head${small ? ' small' : ''}"><span class="gaze"><span class="scan">${'<span class="lid"><span class="eye"><i></i></span></span>'.repeat(2)}</span></span></span>`
 
+  // Models sometimes use markdown despite instructions: keep **bold**, drop heading marks.
+  // Returns plain segments; bold is rendered as an element, never as HTML.
+  function richParts(text) {
+    return text
+      .replace(/^#{1,6}\s+/gm, '')
+      .split(/(\*\*[^*\n]+\*\*)/)
+      .filter(Boolean)
+      .map((p) => (/^\*\*[^*\n]+\*\*$/.test(p) ? { bold: true, text: p.slice(2, -2) } : { bold: false, text: p }))
+  }
+
   // The model ends answers with "FOLLOWUPS: q1 | q2". Hide that line (even mid-stream) and return the questions.
   function splitAnswer(text) {
     const i = text.search(/\n?\s*FOLLOW/)
@@ -286,6 +296,9 @@ input:focus { outline:none; border-color:var(--accent); }
       if (text) n.textContent = text // text only: model output never becomes HTML
       return n
     }
+    rich(node, text) {
+      node.replaceChildren(...richParts(text).map((p) => (p.bold ? this.el('strong', '', p.text) : document.createTextNode(p.text))))
+    }
     chips(list) {
       this.ui.list.querySelector('.chips')?.remove()
       if (!list.length) return
@@ -304,7 +317,11 @@ input:focus { outline:none; border-color:var(--accent); }
     }
     // After a restyle (Glance.mount), redraw the conversation carried over from the old instance.
     replay() {
-      for (const m of this.messages) this.ui.list.append(this.el('p', m.role === 'user' ? 'msg user' : 'msg bot', m.role === 'user' ? m.content : splitAnswer(m.content)[0]))
+      for (const m of this.messages) {
+        const n = this.el('p', m.role === 'user' ? 'msg user' : 'msg bot', m.role === 'user' ? m.content : '')
+        if (m.role === 'assistant') this.rich(n, splitAnswer(m.content)[0])
+        this.ui.list.append(n)
+      }
       const last = this.messages.at(-1)
       if (last.role === 'assistant') this.chips(splitAnswer(last.content)[1])
       setTimeout(() => this.scroll())
@@ -347,7 +364,7 @@ input:focus { outline:none; border-color:var(--accent); }
             bubble.classList.remove('wait')
           }
           out += dec.decode(value, { stream: true })
-          bubble.textContent = splitAnswer(out)[0]
+          this.rich(bubble, splitAnswer(out)[0])
           this.scroll()
         }
         if (!out) throw new Error('empty')
