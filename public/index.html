@@ -31,7 +31,7 @@
       input[type=range] { width: 100%; accent-color: var(--accent); }
       .wide { grid-column: 1 / -1; }
       .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-      .btn { padding: 10px 18px; font: inherit; font-size: 14px; font-weight: 600; color: #0b0c0e; background: var(--accent); border: 0; border-radius: 999px; cursor: pointer; }
+      .btn { display: inline-block; text-decoration: none; padding: 10px 18px; font: inherit; font-size: 14px; font-weight: 600; color: #0b0c0e; background: var(--accent); border: 0; border-radius: 999px; cursor: pointer; }
       .btn.ghost { color: inherit; background: none; border: 1px solid var(--line); }
       .snippet { position: relative; margin-top: 12px; }
       pre { overflow-x: auto; margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #131418; font-size: 13px; line-height: 1.6; }
@@ -43,6 +43,10 @@
     <main>
       <h1>A robot that <span>answers for you</span>.</h1>
       <p>Glance is a floating assistant for your portfolio. It follows the cursor, blinks, gets happy, thinks, and answers visitors' questions using only what you put in <code>knowledge.md</code>. Free to run on Vercel and Groq. Try it in the corner.</p>
+      <div class="row">
+        <a class="btn" href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&amp;env=GROQ_API_KEY&amp;envDescription=Free%20API%20key%20from%20Groq&amp;envLink=https%3A%2F%2Fconsole.groq.com%2Fkeys&amp;project-name=glance-chat&amp;repository-name=glance-chat" target="_blank" rel="noopener">Deploy your own on Vercel</a>
+        <a class="btn ghost" href="https://github.com/Sudhanshu-Patil/glance-chat" target="_blank" rel="noopener">Setup guide on GitHub</a>
+      </div>
 
       <h2>Make it yours</h2>
       <p>Every change updates the robot live. The snippet below is ready to paste.</p>
