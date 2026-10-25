@@ -37,6 +37,12 @@
       pre { overflow-x: auto; margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #131418; font-size: 13px; line-height: 1.6; }
       .copy { position: absolute; top: 10px; right: 10px; padding: 6px 12px; font-size: 12px; }
       .note { font-size: 13px; }
+      #setup { margin-top: 48px; padding: 4px 24px 12px; border: 1px solid var(--accent); border-radius: 16px; background: #131418; }
+      #setup h2 { margin-top: 24px; }
+      .steps { margin: 0; padding-left: 20px; color: var(--muted); }
+      .steps li { margin: 12px 0; padding-left: 4px; }
+      .steps li strong { color: #ecedee; }
+      .steps li.done strong::after { content: "  Done"; color: var(--accent); font-weight: 600; }
     </style>
   </head>
   <body>
@@ -44,9 +50,19 @@
       <h1>A robot that <span>answers for you</span>.</h1>
       <p>Glance is a floating assistant for your portfolio. It follows the cursor, blinks, gets happy, thinks, and answers visitors' questions using only what you put in <code>knowledge.md</code>. Free to run on Vercel and Groq. Try it in the corner.</p>
       <div class="row">
-        <a class="btn" href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&amp;env=GROQ_API_KEY&amp;envDescription=Free%20API%20key%20from%20Groq&amp;envLink=https%3A%2F%2Fconsole.groq.com%2Fkeys&amp;project-name=glance-chat&amp;repository-name=glance-chat" target="_blank" rel="noopener">Deploy your own on Vercel</a>
+        <a class="btn" id="deploy" href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&amp;env=GROQ_API_KEY&amp;envDescription=Free%20API%20key%20from%20Groq&amp;envLink=https%3A%2F%2Fconsole.groq.com%2Fkeys&amp;project-name=glance-chat&amp;repository-name=glance-chat" target="_blank" rel="noopener">Deploy your own on Vercel</a>
         <a class="btn ghost" href="https://github.com/Sudhanshu-Patil/glance-chat" target="_blank" rel="noopener">Setup guide on GitHub</a>
       </div>
+
+      <section id="setup" hidden>
+        <h2>Your Glance is live. Next steps</h2>
+        <ol class="steps">
+          <li id="s-knowledge"><strong>Tell it about you.</strong> <a id="edit-link" target="_blank" rel="noopener">Edit knowledge.md</a> in your new GitHub repo: keep the first line as <code># Your Name</code>, then paste your experience, projects, skills and contact details. Commit, and this deployment updates in about a minute. Until then it answers with the example details.</li>
+          <li><strong>Style it.</strong> Pick colours, shape and theme below. The robot in the corner updates live.</li>
+          <li><strong>Put it on your portfolio.</strong> Copy the snippet at the bottom of this page and paste it just before <code>&lt;/body&gt;</code> in your site's HTML (in React or Vite apps that's <code>index.html</code>). Your portfolio stays where it is; the robot loads from this deployment.</li>
+          <li id="s-lock"><strong>Lock it to your site.</strong> In Vercel, open this project's Settings, then Environment Variables, add <code>ALLOWED_ORIGINS</code> with your portfolio's address (for example <code>https://yourname.dev</code>), and redeploy. This stops other sites from using your free quota.</li>
+        </ol>
+      </section>
 
       <h2>Make it yours</h2>
       <p>Every change updates the robot live. The snippet below is ready to paste.</p>
@@ -85,7 +101,7 @@
       <p class="note">Answers on this demo come from this deployment's <code>knowledge.md</code>. Your copy answers about you. Five-step setup on <a href="https://github.com/Sudhanshu-Patil/glance-chat">GitHub</a>.</p>
     </main>
 
-    <script defer src="/widget.js" data-name="Sudhanshu" data-contact="sudhanshupatil588@gmail.com"></script>
+    <script defer src="/widget.js" data-manual></script>
     <script defer>
       const form = document.getElementById('config')
       const defaults = Object.fromEntries(new FormData(form))
@@ -151,6 +167,29 @@
         setTimeout(() => (e.target.textContent = 'Copy'), 1600)
       }
       document.getElementById('snippet').textContent = snippet(values())
+
+      // Who owns this deployment? The official demo keeps its example; a fresh copy shows its own setup steps.
+      const official = location.hostname === 'glance-chat.vercel.app'
+      // widget.js is deferred, so wait for it before the first mount.
+      const widgetReady = new Promise((r) => (document.readyState === 'loading' ? addEventListener('DOMContentLoaded', r) : r()))
+      Promise.all([fetch('/api/chat').then((r) => r.json()).catch(() => ({})), widgetReady])
+        .then(([info]) => {
+          const name = (official ? 'Sudhanshu' : info.name) || 'Your Name'
+          form.elements.name.value = name
+          form.elements.hint.placeholder = `Questions about ${name}'s work? Ask me.`
+          form.elements.suggestions.placeholder = `What does ${name} do?|What are ${name}'s best projects?|How can I contact ${name}?`
+          defaults.name = name
+          if (!official) {
+            document.getElementById('deploy').hidden = true
+            document.getElementById('setup').hidden = false
+            const edit = document.getElementById('edit-link')
+            if (info.repo) edit.href = `${info.repo}/edit/${info.branch}/knowledge.md`
+            else edit.removeAttribute('href')
+            if (info.locked) document.getElementById('s-lock').classList.add('done')
+            if (info.name && info.name !== 'Sudhanshu') document.getElementById('s-knowledge').classList.add('done')
+          }
+          apply()
+        })
     </script>
   </body>
 </html>

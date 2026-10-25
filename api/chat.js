@@ -47,6 +47,22 @@ function limited(ip) {
   return recent.length > 20
 }
 
+// The demo page asks who this deployment belongs to, so a fresh copy can show its own setup steps.
+export function GET(req) {
+  const owner = process.env.VERCEL_GIT_REPO_OWNER
+  const slug = process.env.VERCEL_GIT_REPO_SLUG
+  return Response.json(
+    {
+      name: OWNER === 'the site owner' ? '' : OWNER.split(' ')[0],
+      repo: owner && slug ? `https://github.com/${owner}/${slug}` : '',
+      branch: process.env.VERCEL_GIT_COMMIT_REF || 'main',
+      locked: !ALLOWED.includes('*'),
+      keySet: Boolean(process.env.GROQ_API_KEY),
+    },
+    { headers: cors(req) },
+  )
+}
+
 export function OPTIONS(req) {
   return new Response(null, { status: 204, headers: cors(req) })
 }

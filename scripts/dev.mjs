@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises'
 import { extname, join, normalize } from 'node:path'
 import { Readable } from 'node:stream'
 
-const { POST, OPTIONS } = await import('../api/chat.js')
+const { GET, POST, OPTIONS } = await import('../api/chat.js')
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png' }
 const port = Number(process.env.PORT) || 3000
 
@@ -14,7 +14,9 @@ createServer(async (req, res) => {
   if (url.pathname === '/api/chat') {
     const body = req.method === 'POST' ? Readable.toWeb(req) : undefined
     const request = new Request(url, { method: req.method, headers: req.headers, body, duplex: 'half' })
-    const response = await (req.method === 'OPTIONS' ? OPTIONS(request) : POST(request))
+    const handler = { GET, POST, OPTIONS }[req.method]
+    if (!handler) return res.writeHead(405).end()
+    const response = await handler(request)
     res.writeHead(response.status, Object.fromEntries(response.headers))
     if (response.body) for await (const chunk of response.body) res.write(chunk)
     return res.end()

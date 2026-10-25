@@ -18,6 +18,12 @@ assert.equal(pre.status, 204)
 assert.equal(pre.headers.get('access-control-allow-origin'), 'https://me.dev')
 assert.equal((await POST(req(hi, { origin: 'https://evil.example' }))).status, 403)
 
+// Owner info for the setup page
+const { GET } = await import('../api/chat.js')
+const info = await GET(new Request('http://x/api/chat', { headers: { origin: 'https://me.dev' } })).json()
+assert.equal(info.name, 'Sudhanshu')
+assert.equal(info.locked, true)
+
 // No key
 delete process.env.GROQ_API_KEY
 assert.equal((await POST(req(hi))).status, 503)

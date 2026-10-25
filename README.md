@@ -28,7 +28,11 @@ A floating AI assistant for your portfolio, with a little robot that has moods. 
 
 5. **Lock it to your site** (recommended). In Vercel, open Settings, then Environment Variables, and add `ALLOWED_ORIGINS` with your site's address, for example `https://yourname.dev`. This stops other sites from using your bot and your free quota. Redeploy once after adding it.
 
-That's it. Your deployment's home page is also a live demo with the snippet ready to copy.
+That's it. Open your deployment's address after step 2 and it shows these steps with links to your own repo and a snippet already filled in.
+
+**How it fits together:** your portfolio stays wherever it is hosted. Your Glance deployment is a small separate service that serves the robot and answers questions from your `knowledge.md`. The script tag in step 4 is the only link between them.
+
+**Getting updates later:** the Deploy button gives you a snapshot, not a fork. To pull in new Glance improvements, run `git pull https://github.com/Sudhanshu-Patil/glance-chat main` in your copy and push, keeping your own `knowledge.md`.
 
 ## Make the robot yours
 
