@@ -1,0 +1,14 @@
+{
+  "name": "glance-chat",
+  "version": "1.0.0",
+  "description": "A floating AI assistant with an expressive robot avatar that answers questions about you. Free stack: Vercel + Groq.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "check": "node scripts/check.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

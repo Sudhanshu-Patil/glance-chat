@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Glance | AI assistant for your portfolio</title>
+    <meta name="description" content="A floating AI assistant with an expressive robot avatar that answers questions about you. Free stack: Vercel and Groq." />
+    <style>
+      :root { color-scheme: dark; --accent: #bfe36b; }
+      body { margin: 0; min-height: 100dvh; background: #0b0c0e; color: #ecedee; font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+      main { max-width: 720px; margin: 0 auto; padding: 96px 16px 160px; }
+      h1 { font-size: clamp(2.2rem, 6vw, 3.4rem); line-height: 1.05; letter-spacing: -0.03em; margin: 0; }
+      h1 span { color: var(--accent); }
+      p { color: #9a9da4; max-width: 60ch; }
+      h2 { font-size: 1.1rem; margin: 48px 0 12px; }
+      pre { overflow-x: auto; padding: 16px; border: 1px solid rgba(255,255,255,.09); border-radius: 12px; background: #131418; color: #ecedee; font-size: 13px; line-height: 1.5; }
+      a { color: var(--accent); }
+      code { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>A robot that <span>answers for you</span>.</h1>
+      <p>Glance is a floating assistant for your portfolio. It follows the cursor, blinks, gets happy, thinks, and answers visitors' questions using only what you put in <code>knowledge.md</code>. Try it in the corner.</p>
+
+      <h2>Add it to any site</h2>
+      <pre><code id="snippet"></code></pre>
+      <p>Works on plain HTML, React, Next.js, Astro, WordPress or anything that can include a script tag. Setup guide on <a href="https://github.com/Sudhanshu-Patil/glance-chat">GitHub</a>.</p>
+    </main>
+    <script>
+      document.getElementById('snippet').textContent =
+        `<script defer src="${location.origin}/widget.js"\n  data-name="Your Name"\n  data-accent="#bfe36b"><\/script>`
+    </script>
+    <script defer src="/widget.js" data-name="Sudhanshu" data-contact="sudhanshupatil588@gmail.com"></script>
+  </body>
+</html>
