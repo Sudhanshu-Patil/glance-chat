@@ -1,16 +1,23 @@
 // Glance chat endpoint. Free stack: a Vercel Hobby function calling Groq's free tier.
-// Everything the bot knows comes from knowledge.md, which is small enough to send whole.
+// Everything the bot knows comes from the KNOWLEDGE env var (resume text pasted in the Deploy form)
+// or, if that's unset, knowledge.md. Either is small enough to send whole, so no vector store.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const KNOWLEDGE = readFileSync(join(process.cwd(), 'knowledge.md'), 'utf8').trim()
-const OWNER = KNOWLEDGE.match(/^#\s+(.+)$/m)?.[1].trim() || 'the site owner'
+const SOURCE = process.env.KNOWLEDGE?.trim() ? 'env' : 'file'
+const RAW = (SOURCE === 'env' ? process.env.KNOWLEDGE : readFileSync(join(process.cwd(), 'knowledge.md'), 'utf8')).trim()
+// ponytail: capped near 4K tokens so a question fits Groq's free 8K tokens/minute. Trim long resumes by hand.
+const MAX_CHARS = 16000
+if (RAW.length > MAX_CHARS) console.warn(`knowledge is ${RAW.length} chars; only the first ${MAX_CHARS} are used`)
+const KNOWLEDGE = RAW.slice(0, MAX_CHARS)
+const NAME = KNOWLEDGE.match(/^#\s+(.+)$/m)?.[1].trim() || ''
+const OWNER = NAME || 'the person described in the knowledge below'
 
 // Groq retires models every few months; set GROQ_MODEL to override without a code change.
 // The fallback has its own free-tier quota, so a 429 on the first model retries on the second.
 const MODELS = [process.env.GROQ_MODEL || 'openai/gpt-oss-120b', 'openai/gpt-oss-20b']
 
-const SYSTEM = `You are the assistant on ${OWNER}'s portfolio website. Visitors are mostly recruiters, hiring managers and clients.
+const SYSTEM = `You are the assistant on the portfolio website of ${OWNER}. Visitors are mostly recruiters, hiring managers and clients.
 Answer questions about ${OWNER} using ONLY the knowledge below. Refer to them by name or in the third person.
 If the knowledge does not contain the answer, say you don't know and point to the contact details in the knowledge.
 Never invent employers, dates, numbers or skills. Keep every fact attached to the role or project it belongs to; never move a metric from one to another.
@@ -53,7 +60,8 @@ export function GET(req) {
   const slug = process.env.VERCEL_GIT_REPO_SLUG
   return Response.json(
     {
-      name: OWNER === 'the site owner' ? '' : OWNER.split(' ')[0],
+      name: NAME.split(' ')[0],
+      source: SOURCE,
       repo: owner && slug ? `https://github.com/${owner}/${slug}` : '',
       branch: process.env.VERCEL_GIT_COMMIT_REF || 'main',
       locked: !ALLOWED.includes('*'),

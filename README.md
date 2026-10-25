@@ -2,7 +2,7 @@
 
 <p align="center"><img src="docs/demo.gif" alt="Glance robot following the cursor, answering a question, then switching colours and theme" width="344"></p>
 
-A floating AI assistant for your portfolio, with a little robot that has moods. It follows the cursor, blinks, gets happy, thinks while it answers, dozes off when you leave it alone, and answers visitors' questions using only what you write in `knowledge.md`.
+A floating AI assistant for your portfolio, with a little robot that has moods. It follows the cursor, blinks, gets happy, thinks while it answers, dozes off when you leave it alone, and answers visitors' questions using only what you tell it: paste your resume and you're done.
 
 **Free to run.** It needs a free [Groq](https://console.groq.com/keys) API key and a free [Vercel](https://vercel.com) account. Nothing else, no database, no paid API.
 
@@ -10,27 +10,27 @@ A floating AI assistant for your portfolio, with a little robot that has moods. 
 
 **Live demo:** [glance-chat.vercel.app](https://glance-chat.vercel.app). Also running on [sudhanshu-patil.vercel.app](https://sudhanshu-patil.vercel.app) (bottom-right corner).
 
-## Setup in 5 steps
+## Setup in 4 steps
 
 1. **Get a free Groq API key** at [console.groq.com/keys](https://console.groq.com/keys).
 
-2. **Deploy your copy.** Click the button and paste the key when Vercel asks for `GROQ_API_KEY`. Vercel copies this repo into your GitHub account and deploys it.
+2. **Deploy your copy.** Click the button. Vercel asks for two values: paste your Groq key into `GROQ_API_KEY`, and paste your resume or LinkedIn About section into `KNOWLEDGE` as plain text. No formatting needed. Vercel copies this repo into your GitHub account and deploys it.
 
-   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&env=GROQ_API_KEY&envDescription=Free%20API%20key%20from%20Groq&envLink=https%3A%2F%2Fconsole.groq.com%2Fkeys&project-name=glance-chat&repository-name=glance-chat)
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&env=GROQ_API_KEY,KNOWLEDGE&envDescription=GROQ_API_KEY%3A%20your%20free%20Groq%20key.%20KNOWLEDGE%3A%20paste%20your%20resume%20or%20LinkedIn%20About%20as%20plain%20text.&envLink=https%3A%2F%2Fconsole.groq.com%2Fkeys&project-name=glance-chat&repository-name=glance-chat)
 
-3. **Tell it about you.** In your new repo, edit `knowledge.md` (GitHub's web editor is fine). Keep the first line as `# Your Name`, then paste your experience, projects, skills and contact details. Commit, and Vercel redeploys on its own.
-
-4. **Add it to your site.** Paste this before `</body>`, using your deployment's URL:
+3. **Add it to your site.** Paste this before `</body>`, using your deployment's URL:
 
    ```html
    <script defer src="https://YOUR-PROJECT.vercel.app/widget.js" data-name="Your Name"></script>
    ```
 
-5. **Lock it to your site** (recommended). In Vercel, open Settings, then Environment Variables, and add `ALLOWED_ORIGINS` with your site's address, for example `https://yourname.dev`. This stops other sites from using your bot and your free quota. Redeploy once after adding it.
+4. **Lock it to your site** (recommended). In Vercel, open Settings, then Environment Variables, and add `ALLOWED_ORIGINS` with your site's address, for example `https://yourname.dev`. This stops other sites from using your bot and your free quota. Redeploy once after adding it.
 
-That's it. Open your deployment's address after step 2 and it shows these steps with links to your own repo and a snippet already filled in.
+That's it. To change what it knows later, edit `KNOWLEDGE` in Vercel's environment variables and redeploy. For longer or structured content (project write-ups, FAQs), write `knowledge.md` in your repo instead, starting with `# Your Name`, then delete the `KNOWLEDGE` variable in Vercel and redeploy. Either source is capped at about 16,000 characters to stay inside Groq's free limits.
 
-**How it fits together:** your portfolio stays wherever it is hosted. Your Glance deployment is a small separate service that serves the robot and answers questions from your `knowledge.md`. The script tag in step 4 is the only link between them.
+Open your deployment's address after step 2 and it shows these steps with links to your own repo and a snippet already filled in.
+
+**How it fits together:** your portfolio stays wherever it is hosted. Your Glance deployment is a small separate service that serves the robot and answers questions from what you gave it. The script tag in step 3 is the only link between them.
 
 **Getting updates later:** the Deploy button gives you a snapshot, not a fork. To pull in new Glance improvements, run `git pull https://github.com/Sudhanshu-Patil/glance-chat main` in your copy and push, keeping your own `knowledge.md`.
 
@@ -96,9 +96,9 @@ Visitors who prefer reduced motion get a still robot.
 
 ## How it answers
 
-The whole of `knowledge.md` is sent with each question to Groq's `openai/gpt-oss-120b`, with instructions to answer only from it, never invent facts, and point to your contact details when it doesn't know. Answers stream in, and each one ends with two suggested follow-up questions.
+Your whole `KNOWLEDGE` text (or `knowledge.md`) is sent with each question to Groq's `openai/gpt-oss-120b`, with instructions to answer only from it, never invent facts, and point to your contact details when it doesn't know. Answers stream in, and each one ends with two suggested follow-up questions.
 
-**Free tier limits.** Groq's free tier allows about 8,000 tokens per minute per model. If the main model is busy, Glance retries on `openai/gpt-oss-20b`, which has its own quota. With a typical `knowledge.md`, that is roughly 5 questions a minute and over 100 a day. Each visitor is also limited to 20 questions per 10 minutes. Keep `knowledge.md` focused, since shorter means more questions per minute.
+**Free tier limits.** Groq's free tier allows about 8,000 tokens per minute per model. If the main model is busy, Glance retries on `openai/gpt-oss-20b`, which has its own quota. With a typical `knowledge.md`, that is roughly 5 questions a minute and over 100 a day. Each visitor is also limited to 20 questions per 10 minutes. Keep it focused, since shorter knowledge means more questions per minute.
 
 **Models change.** Groq retires models every few months. If answers start failing, set `GROQ_MODEL` in Vercel to a current model from [console.groq.com/docs/models](https://console.groq.com/docs/models).
 
@@ -107,6 +107,7 @@ The whole of `knowledge.md` is sent with each question to Groq's `openai/gpt-oss
 | Environment variable | Required | Purpose |
 |---|---|---|
 | `GROQ_API_KEY` | Yes | Your free Groq key |
+| `KNOWLEDGE` | Yes, unless you use `knowledge.md` | Plain text about you: resume, LinkedIn About, project notes |
 | `ALLOWED_ORIGINS` | Recommended | Comma-separated sites allowed to use the bot |
 | `GROQ_MODEL` | No | Override the main model |
 
@@ -129,7 +130,7 @@ No `npm install` needed: there are no dependencies.
 
 - Questions go from the visitor's browser to your Vercel function, then to Groq. Nothing is stored.
 - Model output is only ever inserted as text, never as HTML.
-- Everything in `knowledge.md` can be repeated to anyone who asks, so only include what you'd put on your public site.
+- Everything in `KNOWLEDGE` or `knowledge.md` can be repeated to anyone who asks, so only include what you'd put on your public site.
 
 ## License
 
