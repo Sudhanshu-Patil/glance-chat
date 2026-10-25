@@ -16,7 +16,7 @@ A floating AI assistant for your portfolio, with a little robot that has moods. 
 
 2. **Fork this repo.** Click **Fork** at the top of this page (or [fork it here](https://github.com/Sudhanshu-Patil/glance-chat/fork)). Your fork gets every future improvement with GitHub's one-click **Sync fork** button.
 
-3. **Deploy your fork on Vercel.** Go to [vercel.com/new](https://vercel.com/new), import your `glance-chat` fork, open **Environment Variables**, add these two, then click **Deploy**:
+3. **Deploy your fork on Vercel.** Go to [vercel.com/new](https://vercel.com/new), import your `glance-chat` fork, then **expand the Environment Variables section** (it's collapsed, just above the Deploy button), add these two, and click **Deploy**:
 
    | Name | Value |
    |---|---|
@@ -24,6 +24,8 @@ A floating AI assistant for your portfolio, with a little robot that has moods. 
    | `ALLOWED_ORIGINS` | your portfolio's address, e.g. `https://yourname.dev`. Testing locally too? Add it after a comma: `https://yourname.dev,http://localhost:5173` |
 
    Only the sites you list can use your robot and your free quota.
+
+   Clicked Deploy before adding them? No problem: open the project's **Settings → Environment Variables**, add both, then go to **Deployments**, open the ⋯ menu on the latest one and click **Redeploy**.
 
 4. **Add it to your portfolio.** Paste this just before `</body>` in your site's HTML, using your deployment's address (in React or Vite apps that's `index.html`):
 

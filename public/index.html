@@ -44,6 +44,8 @@
       .prep li { margin: 6px 0; }
       #setup { margin-top: 48px; padding: 4px 24px 12px; border: 1px solid var(--accent); border-radius: 16px; background: #131418; }
       #setup h2 { margin-top: 24px; }
+      .warn { margin: 12px 0 4px; padding: 12px 14px; border: 1px solid #f59e0b; border-radius: 10px; color: #fcd34d; background: rgba(245,158,11,.08); }
+      .warn strong { color: #fde68a; }
       .steps { margin: 0; padding-left: 20px; color: var(--muted); }
       .steps li { margin: 12px 0; padding-left: 4px; }
       .steps li strong { color: #ecedee; }
@@ -72,6 +74,7 @@
 
       <section id="setup" hidden>
         <h2>Your Glance is live. Next steps</h2>
+        <p class="warn" id="no-key" hidden><strong>Add your Groq key first.</strong> This deployment has no <code>GROQ_API_KEY</code>, so the robot can't answer yet. In Vercel, open this project's Settings, then Environment Variables, add <code>GROQ_API_KEY</code> (and <code>ALLOWED_ORIGINS</code> with your portfolio's address), then go to Deployments, open the ⋯ menu on the latest one and click Redeploy.</p>
         <ol class="steps">
           <li><strong>Style it.</strong> Pick colours, shape and theme below. The robot in the corner updates live.</li>
           <li><strong>Put it on your portfolio.</strong> Copy the snippet at the bottom of this page and paste it just before <code>&lt;/body&gt;</code> in your site's HTML (in React or Vite apps that's <code>index.html</code>). Your portfolio stays where it is; the robot loads from this deployment and learns from your site's pages. Ask it something there to try it. The robot on this page won't know you yet, because it doesn't read this setup page.</li>
@@ -202,6 +205,7 @@
             const edit = document.getElementById('edit-link')
             if (info.repo) edit.href = `${info.repo}/edit/${info.branch}/knowledge.md`
             else edit.removeAttribute('href')
+            document.getElementById('no-key').hidden = info.keySet !== false
             const lock = document.getElementById('lock-info')
             if (info.locked) {
               document.getElementById('s-lock').classList.add('done')
