@@ -10,21 +10,32 @@ A floating AI assistant for your portfolio, with a little robot that has moods. 
 
 **Live demo:** [glance-chat.vercel.app](https://glance-chat.vercel.app). Also running on [sudhanshu-patil.vercel.app](https://sudhanshu-patil.vercel.app) (bottom-right corner).
 
-## Setup in 3 steps
+## Setup in 4 steps
 
 1. **Get a free Groq API key.** Sign in at [console.groq.com/keys](https://console.groq.com/keys), click **Create API Key**, and copy it (it starts with `gsk_`). No card needed.
 
-2. **Deploy your copy.** Click the button. Vercel asks for two values: paste the key into `GROQ_API_KEY`, and your portfolio's address into `ALLOWED_ORIGINS`, for example `https://yourname.dev`. Only the sites you list can use your robot and your free quota. Testing locally too? Add it after a comma: `https://yourname.dev,http://localhost:5173`. Vercel copies this repo into your GitHub account and deploys it.
+2. **Fork this repo.** Click **Fork** at the top of this page (or [fork it here](https://github.com/Sudhanshu-Patil/glance-chat/fork)). Your fork gets every future improvement with GitHub's one-click **Sync fork** button.
 
-   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&env=GROQ_API_KEY,ALLOWED_ORIGINS&envDescription=GROQ_API_KEY%3A%20your%20free%20key%20from%20console.groq.com%2Fkeys.%20ALLOWED_ORIGINS%3A%20your%20portfolio%27s%20address%2C%20like%20https%3A%2F%2Fyourname.dev%20%28add%20more%20separated%20by%20commas%2C%20e.g.%20http%3A%2F%2Flocalhost%3A5173%20for%20testing%29.%20Glance%20reads%20your%20site%20by%20itself.&envLink=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat%23setup-in-3-steps&project-name=glance-chat&repository-name=glance-chat)
+3. **Deploy your fork on Vercel.** Go to [vercel.com/new](https://vercel.com/new), import your `glance-chat` fork, open **Environment Variables**, add these two, then click **Deploy**:
 
-3. **Add it to your portfolio.** Paste this just before `</body>` in your site's HTML, using your deployment's address (in React or Vite apps that's `index.html`):
+   | Name | Value |
+   |---|---|
+   | `GROQ_API_KEY` | the key from step 1 |
+   | `ALLOWED_ORIGINS` | your portfolio's address, e.g. `https://yourname.dev`. Testing locally too? Add it after a comma: `https://yourname.dev,http://localhost:5173` |
+
+   Only the sites you list can use your robot and your free quota.
+
+4. **Add it to your portfolio.** Paste this just before `</body>` in your site's HTML, using your deployment's address (in React or Vite apps that's `index.html`):
 
    ```html
    <script defer src="https://YOUR-PROJECT.vercel.app/widget.js" data-name="Your Name"></script>
    ```
 
-That's it. Open your deployment's address after step 2 and it walks you through step 3 with your snippet already filled in, and lists the sites it accepts.
+**Just want a quick try?** This button skips the fork and asks for the same two values. It creates a standalone copy, so you won't get **Sync fork** updates.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&env=GROQ_API_KEY,ALLOWED_ORIGINS&envDescription=GROQ_API_KEY%3A%20your%20free%20key%20from%20console.groq.com%2Fkeys.%20ALLOWED_ORIGINS%3A%20your%20portfolio%27s%20address%2C%20like%20https%3A%2F%2Fyourname.dev%20%28add%20more%20separated%20by%20commas%2C%20e.g.%20http%3A%2F%2Flocalhost%3A5173%20for%20testing%29.%20Glance%20reads%20your%20site%20by%20itself.&envLink=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat%23setup-in-4-steps&project-name=glance-chat&repository-name=glance-chat)
+
+That's it. Open your deployment's address after step 3 and it walks you through step 4 with your snippet already filled in, and lists the sites it accepts.
 
 **Changing your sites later:** edit `ALLOWED_ORIGINS` in your Vercel project's Settings, then Environment Variables, and redeploy. If the robot replies "I'm not set up for this site yet", the page's address is missing from that list; the browser console names the exact address to add.
 
@@ -42,7 +53,7 @@ Good to know:
 - Site text and extra detail share a budget of about 12,000 characters, so each question fits Groq's free limits. Site text gets priority.
 - Prefer it not to read your site? Add `data-read-site="off"` to the script tag and give it `RESUME_TEXT` instead.
 
-**Getting updates later:** the Deploy button gives you a snapshot, not a fork. To pull in new Glance improvements, run `git pull https://github.com/Sudhanshu-Patil/glance-chat main` in your copy and push.
+**Getting updates later:** on your fork's GitHub page, click **Sync fork**; Vercel redeploys on its own. Used the quick-try button instead? Run `git pull https://github.com/Sudhanshu-Patil/glance-chat main` in your copy and push.
 
 ## Make the robot yours
 

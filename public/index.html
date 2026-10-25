@@ -31,6 +31,8 @@
       input[type=range] { width: 100%; accent-color: var(--accent); }
       .wide { grid-column: 1 / -1; }
       .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+      #deploy { display: contents; }
+      #deploy[hidden] { display: none; }
       .btn { display: inline-block; text-decoration: none; padding: 10px 18px; font: inherit; font-size: 14px; font-weight: 600; color: #0b0c0e; background: var(--accent); border: 0; border-radius: 999px; cursor: pointer; }
       .btn.ghost { color: inherit; background: none; border: 1px solid var(--line); }
       .snippet { position: relative; margin-top: 12px; }
@@ -53,14 +55,17 @@
       <h1>A robot that <span>answers for you</span>.</h1>
       <p>Glance is a floating assistant for your portfolio. It follows the cursor, blinks, gets happy, thinks, and answers visitors' questions about you. It reads your portfolio by itself, so there's nothing to write or paste. Free to run on Vercel and Groq. Try it in the corner.</p>
       <div class="row">
-        <a class="btn" id="deploy" href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&amp;env=GROQ_API_KEY,ALLOWED_ORIGINS&amp;envDescription=GROQ_API_KEY%3A%20your%20free%20key%20from%20console.groq.com%2Fkeys.%20ALLOWED_ORIGINS%3A%20your%20portfolio%27s%20address%2C%20like%20https%3A%2F%2Fyourname.dev%20%28add%20more%20separated%20by%20commas%2C%20e.g.%20http%3A%2F%2Flocalhost%3A5173%20for%20testing%29.%20Glance%20reads%20your%20site%20by%20itself.&amp;envLink=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat%23setup-in-3-steps&amp;project-name=glance-chat&amp;repository-name=glance-chat" target="_blank" rel="noopener">Deploy your own on Vercel</a>
-        <a class="btn ghost" href="https://github.com/Sudhanshu-Patil/glance-chat" target="_blank" rel="noopener">Setup guide on GitHub</a>
+        <span id="deploy">
+          <a class="btn" href="https://github.com/Sudhanshu-Patil/glance-chat/fork" target="_blank" rel="noopener">Fork on GitHub</a>
+          <a class="btn ghost" href="https://github.com/Sudhanshu-Patil/glance-chat#setup-in-4-steps" target="_blank" rel="noopener">Setup guide</a>
+          <a class="btn ghost" href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&amp;env=GROQ_API_KEY,ALLOWED_ORIGINS&amp;envDescription=GROQ_API_KEY%3A%20your%20free%20key%20from%20console.groq.com%2Fkeys.%20ALLOWED_ORIGINS%3A%20your%20portfolio%27s%20address%2C%20like%20https%3A%2F%2Fyourname.dev%20%28add%20more%20separated%20by%20commas%2C%20e.g.%20http%3A%2F%2Flocalhost%3A5173%20for%20testing%29.%20Glance%20reads%20your%20site%20by%20itself.&amp;envLink=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat%23setup-in-4-steps&amp;project-name=glance-chat&amp;repository-name=glance-chat" target="_blank" rel="noopener">Quick try on Vercel</a>
+        </span>
       </div>
       <div class="prep" id="prep">
-        <strong>All you need before you deploy</strong>
+        <strong>All you need</strong>
         <ol>
-          <li>A free Groq API key. <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Create one here</a>, it takes a minute and needs no card. Vercel asks for it as <code>GROQ_API_KEY</code>.</li>
-          <li>Your portfolio's address, like <code>https://yourname.dev</code>. Vercel asks for it as <code>ALLOWED_ORIGINS</code>, so only your site can use your robot. Add <code>http://localhost:5173</code> after a comma if you test locally.</li>
+          <li>A free Groq API key. <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Create one here</a>, it takes a minute and needs no card. You'll add it in Vercel as <code>GROQ_API_KEY</code>.</li>
+          <li>Your portfolio's address, like <code>https://yourname.dev</code>. You'll add it in Vercel as <code>ALLOWED_ORIGINS</code>, so only your site can use your robot. Add <code>http://localhost:5173</code> after a comma if you test locally.</li>
           <li>Access to your portfolio's HTML, to paste one script tag. Glance reads your site's content by itself.</li>
         </ol>
       </div>
@@ -109,7 +114,7 @@
         <pre><code id="snippet"></code></pre>
         <button class="btn copy" type="button" id="copy">Copy</button>
       </div>
-      <p class="note">This demo answers about Sudhanshu. Your copy learns from your portfolio. Three-step setup on <a href="https://github.com/Sudhanshu-Patil/glance-chat">GitHub</a>.</p>
+      <p class="note">This demo answers about Sudhanshu. Your copy learns from your portfolio. Four-step setup on <a href="https://github.com/Sudhanshu-Patil/glance-chat">GitHub</a>.</p>
     </main>
 
     <script defer src="/widget.js" data-manual data-read-site="off"></script>
