@@ -133,6 +133,17 @@ input:focus { outline:none; border-color:var(--accent); }
 
   // Link addresses aren't visible text, so list outside links separately, each labelled with the
   // heading of the card or section it sits in: "MediClaim: Watch demo -> https://...".
+  // The nearest heading above a link, searching outward from its own card, so "Download on the App Store"
+  // gets the app's title rather than the whole section's.
+  function headingFor(a) {
+    for (let el = a.parentElement, depth = 0; el && depth < 6; el = el.parentElement, depth++) {
+      const before = [...el.querySelectorAll('h1, h2, h3, h4')].filter(
+        (h) => !h.contains(a) && h.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING,
+      )
+      if (before.length) return before.at(-1)
+    }
+  }
+
   function linksOf(root, base, tidy, textOf) {
     const seen = new Set()
     const out = []
@@ -145,9 +156,12 @@ input:focus { outline:none; border-color:var(--accent); }
       }
       if (!/^(https?|mailto):$/.test(url.protocol) || url.origin === location.origin || seen.has(url.href)) continue
       seen.add(url.href)
-      const label = tidy(textOf(a) || a.getAttribute('aria-label') || '').slice(0, 60)
-      const heading = a.closest('article, li, section')?.querySelector('h1, h2, h3, h4')
-      const where = heading && !heading.contains(a) ? tidy(textOf(heading)).slice(0, 50) : ''
+      // icon-only links (LinkedIn, GitHub buttons) fall back to their accessible name, then the site's name
+      const label = tidy(
+        textOf(a) || a.getAttribute('aria-label') || a.getAttribute('title') || a.querySelector('img[alt]')?.alt || url.hostname.replace(/^www\./, '').split('.')[0],
+      ).slice(0, 60)
+      const heading = headingFor(a)
+      const where = heading ? tidy(textOf(heading)).slice(0, 50) : ''
       out.push(`- ${[where, label].filter(Boolean).join(': ') || 'Link'} -> ${url.href.replace(/^mailto:/, 'email ')}`)
     }
     return out
