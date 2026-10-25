@@ -5,8 +5,6 @@ AI Engineer. Immediate joiner. Pune, Hyderabad, Bangalore, Mumbai or remote.
 
 ## Contact
 - Email: sudhanshupatil588@gmail.com
-- Phone: +91 72489 13660
-- Location: Manish Layout, Nagpur 440022, India
 - GitHub: https://github.com/Sudhanshu-Patil
 - LinkedIn: https://www.linkedin.com/in/sudhpatil
 - LeetCode: https://leetcode.com/u/sudh000
