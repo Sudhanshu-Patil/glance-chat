@@ -14,9 +14,9 @@ A floating AI assistant for your portfolio, with a little robot that has moods. 
 
 1. **Get a free Groq API key** at [console.groq.com/keys](https://console.groq.com/keys).
 
-2. **Deploy your copy.** Click the button. Vercel asks for two values: paste your Groq key into `GROQ_API_KEY`, and paste your resume or LinkedIn About section into `KNOWLEDGE` as plain text. No formatting needed. Vercel copies this repo into your GitHub account and deploys it.
+2. **Deploy your copy.** Click the button. Vercel asks for two values: paste your Groq key into `GROQ_API_KEY`, and paste your resume text into `RESUME_TEXT` (see [What to paste](#what-to-paste)). No formatting needed. Vercel copies this repo into your GitHub account and deploys it.
 
-   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&env=GROQ_API_KEY,KNOWLEDGE&envDescription=GROQ_API_KEY%3A%20your%20free%20Groq%20key.%20KNOWLEDGE%3A%20paste%20your%20resume%20or%20LinkedIn%20About%20as%20plain%20text.&envLink=https%3A%2F%2Fconsole.groq.com%2Fkeys&project-name=glance-chat&repository-name=glance-chat)
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&env=GROQ_API_KEY,RESUME_TEXT&envDescription=GROQ_API_KEY%3A%20your%20free%20key%20from%20console.groq.com%2Fkeys.%20RESUME_TEXT%3A%20open%20your%20resume%2C%20press%20Ctrl%2BA%20then%20Ctrl%2BC%2C%20and%20paste%20it%20here%20%28LinkedIn%20About%20%2B%20Experience%20also%20works%29.&envLink=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat%23what-to-paste&project-name=glance-chat&repository-name=glance-chat)
 
 3. **Add it to your site.** Paste this before `</body>`, using your deployment's URL:
 
@@ -26,7 +26,19 @@ A floating AI assistant for your portfolio, with a little robot that has moods. 
 
 4. **Lock it to your site** (recommended). In Vercel, open Settings, then Environment Variables, and add `ALLOWED_ORIGINS` with your site's address, for example `https://yourname.dev`. This stops other sites from using your bot and your free quota. Redeploy once after adding it.
 
-That's it. To change what it knows later, edit `KNOWLEDGE` in Vercel's environment variables and redeploy. For longer or structured content (project write-ups, FAQs), write `knowledge.md` in your repo instead, starting with `# Your Name`, then delete the `KNOWLEDGE` variable in Vercel and redeploy. Either source is capped at about 16,000 characters to stay inside Groq's free limits.
+That's it. To change what it knows later, edit `RESUME_TEXT` in Vercel's environment variables and redeploy. For longer or structured content (project write-ups, FAQs), write `knowledge.md` in your repo instead, starting with `# Your Name`, then delete the `RESUME_TEXT` variable in Vercel and redeploy. Either source is capped at about 16,000 characters to stay inside Groq's free limits.
+
+## What to paste
+
+**`GROQ_API_KEY`**: sign in at [console.groq.com/keys](https://console.groq.com/keys), click **Create API Key**, and copy it. It starts with `gsk_`. Free, no card needed.
+
+**`RESUME_TEXT`**: everything the robot knows about you. Your resume works best.
+
+- Open your resume (PDF or Word), press **Ctrl+A** then **Ctrl+C** (Cmd on Mac), and paste into the box.
+- No resume handy? Paste your LinkedIn **About** and **Experience** sections, or a short bio plus a list of projects.
+- Formatting doesn't matter. The box squashes everything onto one line, and the robot reads it just fine.
+- Include the contact details you want shared, such as email and LinkedIn. Leave out your phone number or address if you'd rather the robot didn't repeat them.
+- Up to about 16,000 characters (roughly 4 pages). Anything longer is trimmed.
 
 Open your deployment's address after step 2 and it shows these steps with links to your own repo and a snippet already filled in.
 
@@ -96,7 +108,7 @@ Visitors who prefer reduced motion get a still robot.
 
 ## How it answers
 
-Your whole `KNOWLEDGE` text (or `knowledge.md`) is sent with each question to Groq's `openai/gpt-oss-120b`, with instructions to answer only from it, never invent facts, and point to your contact details when it doesn't know. Answers stream in, and each one ends with two suggested follow-up questions.
+Your whole `RESUME_TEXT` (or `knowledge.md`) is sent with each question to Groq's `openai/gpt-oss-120b`, with instructions to answer only from it, never invent facts, and point to your contact details when it doesn't know. Answers stream in, and each one ends with two suggested follow-up questions.
 
 **Free tier limits.** Groq's free tier allows about 8,000 tokens per minute per model. If the main model is busy, Glance retries on `openai/gpt-oss-20b`, which has its own quota. With a typical `knowledge.md`, that is roughly 5 questions a minute and over 100 a day. Each visitor is also limited to 20 questions per 10 minutes. Keep it focused, since shorter knowledge means more questions per minute.
 
@@ -107,7 +119,7 @@ Your whole `KNOWLEDGE` text (or `knowledge.md`) is sent with each question to Gr
 | Environment variable | Required | Purpose |
 |---|---|---|
 | `GROQ_API_KEY` | Yes | Your free Groq key |
-| `KNOWLEDGE` | Yes, unless you use `knowledge.md` | Plain text about you: resume, LinkedIn About, project notes |
+| `RESUME_TEXT` | Yes, unless you use `knowledge.md` | Plain text about you: resume, LinkedIn About, project notes. `KNOWLEDGE` is accepted as an alias |
 | `ALLOWED_ORIGINS` | Recommended | Comma-separated sites allowed to use the bot |
 | `GROQ_MODEL` | No | Override the main model |
 
@@ -130,7 +142,7 @@ No `npm install` needed: there are no dependencies.
 
 - Questions go from the visitor's browser to your Vercel function, then to Groq. Nothing is stored.
 - Model output is only ever inserted as text, never as HTML.
-- Everything in `KNOWLEDGE` or `knowledge.md` can be repeated to anyone who asks, so only include what you'd put on your public site.
+- Everything in `RESUME_TEXT` or `knowledge.md` can be repeated to anyone who asks, so only include what you'd put on your public site.
 
 ## License
 

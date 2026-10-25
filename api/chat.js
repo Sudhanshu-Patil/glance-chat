@@ -1,11 +1,12 @@
 // Glance chat endpoint. Free stack: a Vercel Hobby function calling Groq's free tier.
-// Everything the bot knows comes from the KNOWLEDGE env var (resume text pasted in the Deploy form)
+// Everything the bot knows comes from the RESUME_TEXT env var (resume pasted in the Deploy form; KNOWLEDGE also accepted)
 // or, if that's unset, knowledge.md. Either is small enough to send whole, so no vector store.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const SOURCE = process.env.KNOWLEDGE?.trim() ? 'env' : 'file'
-const RAW = (SOURCE === 'env' ? process.env.KNOWLEDGE : readFileSync(join(process.cwd(), 'knowledge.md'), 'utf8')).trim()
+const PASTED = (process.env.RESUME_TEXT || process.env.KNOWLEDGE || '').trim()
+const SOURCE = PASTED ? 'env' : 'file'
+const RAW = (PASTED || readFileSync(join(process.cwd(), 'knowledge.md'), 'utf8')).trim()
 // ponytail: capped near 4K tokens so a question fits Groq's free 8K tokens/minute. Trim long resumes by hand.
 const MAX_CHARS = 16000
 if (RAW.length > MAX_CHARS) console.warn(`knowledge is ${RAW.length} chars; only the first ${MAX_CHARS} are used`)

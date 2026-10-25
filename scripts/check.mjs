@@ -25,13 +25,13 @@ assert.equal(info.name, 'Sudhanshu')
 assert.equal(info.source, 'file')
 assert.equal(info.locked, true)
 
-// Pasted resume text (KNOWLEDGE env) wins over knowledge.md and is capped for the free tier
-process.env.KNOWLEDGE = 'Priya Raman. Data engineer at Acme Logistics. ' + 'x'.repeat(20000)
+// Pasted resume text (RESUME_TEXT env) wins over knowledge.md and is capped for the free tier
+process.env.RESUME_TEXT = 'Priya Raman. Data engineer at Acme Logistics. ' + 'x'.repeat(20000)
 const envMod = await import('../api/chat.js?env')
 const envInfo = await envMod.GET(new Request('http://x/api/chat')).json()
 assert.equal(envInfo.source, 'env')
 assert.equal(envInfo.name, '')
-delete process.env.KNOWLEDGE
+delete process.env.RESUME_TEXT
 
 // No key
 delete process.env.GROQ_API_KEY

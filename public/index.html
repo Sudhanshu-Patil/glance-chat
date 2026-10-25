@@ -37,6 +37,9 @@
       pre { overflow-x: auto; margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #131418; font-size: 13px; line-height: 1.6; }
       .copy { position: absolute; top: 10px; right: 10px; padding: 6px 12px; font-size: 12px; }
       .note { font-size: 13px; }
+      .prep { margin-top: 16px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 12px; background: #131418; font-size: 14px; }
+      .prep ol { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
+      .prep li { margin: 6px 0; }
       #setup { margin-top: 48px; padding: 4px 24px 12px; border: 1px solid var(--accent); border-radius: 16px; background: #131418; }
       #setup h2 { margin-top: 24px; }
       .steps { margin: 0; padding-left: 20px; color: var(--muted); }
@@ -50,14 +53,21 @@
       <h1>A robot that <span>answers for you</span>.</h1>
       <p>Glance is a floating assistant for your portfolio. It follows the cursor, blinks, gets happy, thinks, and answers visitors' questions using only what you tell it. Paste your resume and you're done. Free to run on Vercel and Groq. Try it in the corner.</p>
       <div class="row">
-        <a class="btn" id="deploy" href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&amp;env=GROQ_API_KEY,KNOWLEDGE&amp;envDescription=GROQ_API_KEY%3A%20your%20free%20Groq%20key.%20KNOWLEDGE%3A%20paste%20your%20resume%20or%20LinkedIn%20About%20as%20plain%20text.&amp;envLink=https%3A%2F%2Fconsole.groq.com%2Fkeys&amp;project-name=glance-chat&amp;repository-name=glance-chat" target="_blank" rel="noopener">Deploy your own on Vercel</a>
+        <a class="btn" id="deploy" href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat&amp;env=GROQ_API_KEY,RESUME_TEXT&amp;envDescription=GROQ_API_KEY%3A%20your%20free%20key%20from%20console.groq.com%2Fkeys.%20RESUME_TEXT%3A%20open%20your%20resume%2C%20press%20Ctrl%2BA%20then%20Ctrl%2BC%2C%20and%20paste%20it%20here%20%28LinkedIn%20About%20%2B%20Experience%20also%20works%29.&amp;envLink=https%3A%2F%2Fgithub.com%2FSudhanshu-Patil%2Fglance-chat%23what-to-paste&amp;project-name=glance-chat&amp;repository-name=glance-chat" target="_blank" rel="noopener">Deploy your own on Vercel</a>
         <a class="btn ghost" href="https://github.com/Sudhanshu-Patil/glance-chat" target="_blank" rel="noopener">Setup guide on GitHub</a>
+      </div>
+      <div class="prep" id="prep">
+        <strong>Have these ready before you deploy</strong>
+        <ol>
+          <li>A free Groq API key. <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Create one here</a>, it takes a minute. Vercel asks for it as <code>GROQ_API_KEY</code>.</li>
+          <li>Your resume text. Open your resume, press Ctrl+A then Ctrl+C. Vercel asks you to paste it as <code>RESUME_TEXT</code>. No resume? Your LinkedIn About and Experience sections work too.</li>
+        </ol>
       </div>
 
       <section id="setup" hidden>
         <h2>Your Glance is live. Next steps</h2>
         <ol class="steps">
-          <li id="s-knowledge"><strong>Check what it knows.</strong> <span id="k-env" hidden>It answers from the resume text you pasted while deploying. Ask the robot a question to try it. To change it later, edit <code>KNOWLEDGE</code> in this project's Vercel environment variables and redeploy.</span><span id="k-file">It answers from <a id="edit-link" target="_blank" rel="noopener">knowledge.md</a> in your repo, which still holds the example details. Replace them with yours (first line <code># Your Name</code>), or add a <code>KNOWLEDGE</code> environment variable in Vercel with your resume text and redeploy.</span></li>
+          <li id="s-knowledge"><strong>Check what it knows.</strong> <span id="k-env" hidden>It answers from the resume text you pasted while deploying. Ask the robot a question to try it. To change it later, edit <code>RESUME_TEXT</code> in this project's Vercel environment variables and redeploy.</span><span id="k-file">It answers from <a id="edit-link" target="_blank" rel="noopener">knowledge.md</a> in your repo, which still holds the example details. Replace them with yours (first line <code># Your Name</code>), or add a <code>RESUME_TEXT</code> environment variable in Vercel with your resume text and redeploy.</span></li>
           <li><strong>Style it.</strong> Pick colours, shape and theme below. The robot in the corner updates live.</li>
           <li><strong>Put it on your portfolio.</strong> Copy the snippet at the bottom of this page and paste it just before <code>&lt;/body&gt;</code> in your site's HTML (in React or Vite apps that's <code>index.html</code>). Your portfolio stays where it is; the robot loads from this deployment.</li>
           <li id="s-lock"><strong>Lock it to your site.</strong> In Vercel, open this project's Settings, then Environment Variables, add <code>ALLOWED_ORIGINS</code> with your portfolio's address (for example <code>https://yourname.dev</code>), and redeploy. This stops other sites from using your free quota.</li>
@@ -181,6 +191,7 @@
           defaults.name = name
           if (!official) {
             document.getElementById('deploy').hidden = true
+            document.getElementById('prep').hidden = true
             document.getElementById('setup').hidden = false
             const edit = document.getElementById('edit-link')
             if (info.repo) edit.href = `${info.repo}/edit/${info.branch}/knowledge.md`
