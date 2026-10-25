@@ -33,6 +33,7 @@
         .filter(Boolean)
         .slice(0, 4),
       contact: d.contact || '',
+      readSite: d.readSite !== 'off',
       onAccent: lum > 0.4 ? '#0b0c0e' : '#ffffff',
     }
   }
@@ -122,6 +123,55 @@ input:focus { outline:none; border-color:var(--accent); }
 
   const robot = (small) =>
     `<span class="head${small ? ' small' : ''}"><span class="gaze"><span class="scan">${'<span class="lid"><span class="eye"><i></i></span></span>'.repeat(2)}</span></span></span>`
+
+  // Reads the portfolio the widget lives on: this page as the visitor sees it (so React and other
+  // client-rendered sites work) plus up to 6 same-site pages it links to. Runs once per visit, and only
+  // when someone asks a question, so visitors who never chat cost nothing.
+  const MAX_SITE = 9000
+  let siteText
+  async function readSite() {
+    if (siteText !== undefined) return siteText
+    try {
+      const cached = sessionStorage.getItem('glance-site')
+      if (cached) return (siteText = cached)
+    } catch {}
+    const tidy = (t) => t.replace(/[ \t\u00a0]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim()
+    const parts = [tidy(document.body.innerText || '')]
+    const here = location.origin + location.pathname
+    const links = [
+      ...new Set(
+        [...document.querySelectorAll('a[href]')]
+          .map((a) => {
+            try {
+              return new URL(a.getAttribute('href'), location.href)
+            } catch {}
+          })
+          .filter((u) => u && u.origin === location.origin && !/\.(pdf|png|jpe?g|gif|svg|webp|zip|mp4|docx?)$/i.test(u.pathname))
+          .map((u) => u.origin + u.pathname)
+          .filter((u) => u !== here),
+      ),
+    ].slice(0, 6)
+    const pages = await Promise.all(
+      links.map((u) =>
+        fetch(u, { credentials: 'omit' })
+          .then((r) => (r.ok && /html/.test(r.headers.get('content-type') || '') ? r.text() : ''))
+          .catch(() => ''),
+      ),
+    )
+    for (const html of pages) {
+      if (!html) continue
+      // keep block boundaries as line breaks, then drop anything that isn't readable content
+      const doc = new DOMParser().parseFromString(html.replace(/<\/(p|div|li|h[1-6]|section|article|header|footer|tr)>|<br\s*\/?>/gi, '\n$&'), 'text/html')
+      doc.querySelectorAll('script,style,noscript,template,svg').forEach((n) => n.remove())
+      const text = tidy(doc.body?.textContent || '')
+      if (text.length > 200 && !parts.includes(text)) parts.push(text) // client-rendered shells have almost no text
+    }
+    siteText = parts.join('\n\n').slice(0, MAX_SITE)
+    try {
+      sessionStorage.setItem('glance-site', siteText)
+    } catch {}
+    return siteText
+  }
 
   // Models sometimes use markdown despite instructions: keep **bold**, drop heading marks.
   // Returns plain segments; bold is rendered as an element, never as HTML.
@@ -351,7 +401,11 @@ input:focus { outline:none; border-color:var(--accent); }
         const res = await fetch(this.cfg.api, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: this.messages }),
+          body: JSON.stringify({
+            messages: this.messages,
+            name: this.cfg.name,
+            page: this.cfg.readSite ? await readSite().catch(() => '') : '',
+          }),
         })
         if (!res.ok || !res.body) throw new Error((await res.json().catch(() => ({}))).error || 'failed')
         const reader = res.body.getReader()
@@ -378,7 +432,9 @@ input:focus { outline:none; border-color:var(--accent); }
         const reach = this.cfg.contact ? ` You can reach ${this.cfg.name} at ${this.cfg.contact}.` : ''
         bubble.classList.remove('wait')
         bubble.textContent =
-          e.message === 'offline'
+          e.message === 'no_knowledge'
+            ? `I don't have anything to go on yet.${reach}`
+            : e.message === 'offline'
             ? `I'm offline right now.${reach}`
             : e.message === 'rate_limited'
               ? 'Too many questions in a short time. Give it a minute and try again.'
