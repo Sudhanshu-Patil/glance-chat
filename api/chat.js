@@ -16,7 +16,7 @@ const NAME = EXTRA.match(/^#\s+(.+)$/m)?.[1].trim() || ''
 // ponytail: one shared budget (~3K tokens) so a question fits Groq's free 8K tokens/minute.
 // When the site text is present, extra detail gets at most half of it.
 const BUDGET = 12000
-const MAX_PAGE = 9000
+const MAX_PAGE = 11000
 
 // Groq retires models every few months; set GROQ_MODEL to override without a code change.
 // The fallback has its own free-tier quota, so a 429 on the first model retries on the second.

@@ -127,8 +127,31 @@ input:focus { outline:none; border-color:var(--accent); }
   // Reads the portfolio the widget lives on: this page as the visitor sees it (so React and other
   // client-rendered sites work) plus up to 6 same-site pages it links to. Runs once per visit, and only
   // when someone asks a question, so visitors who never chat cost nothing.
-  const MAX_SITE = 9000
+  const MAX_SITE = 11000
+  const MAX_LINKS = 2500
   let siteText
+
+  // Link addresses aren't visible text, so list outside links separately, each labelled with the
+  // heading of the card or section it sits in: "MediClaim: Watch demo -> https://...".
+  function linksOf(root, base, tidy, textOf) {
+    const seen = new Set()
+    const out = []
+    for (const a of root.querySelectorAll('a[href]')) {
+      let url
+      try {
+        url = new URL(a.getAttribute('href'), base)
+      } catch {
+        continue
+      }
+      if (!/^(https?|mailto):$/.test(url.protocol) || url.origin === location.origin || seen.has(url.href)) continue
+      seen.add(url.href)
+      const label = tidy(textOf(a) || a.getAttribute('aria-label') || '').slice(0, 60)
+      const heading = a.closest('article, li, section')?.querySelector('h1, h2, h3, h4')
+      const where = heading && !heading.contains(a) ? tidy(textOf(heading)).slice(0, 50) : ''
+      out.push(`- ${[where, label].filter(Boolean).join(': ') || 'Link'} -> ${url.href.replace(/^mailto:/, 'email ')}`)
+    }
+    return out
+  }
   async function readSite() {
     if (siteText !== undefined) return siteText
     try {
@@ -137,6 +160,7 @@ input:focus { outline:none; border-color:var(--accent); }
     } catch {}
     const tidy = (t) => t.replace(/[ \t\u00a0]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim()
     const parts = [tidy(document.body.innerText || '')]
+    const outside = linksOf(document, location.href, tidy, (n) => n.innerText)
     const here = location.origin + location.pathname
     const links = [
       ...new Set(
@@ -158,15 +182,17 @@ input:focus { outline:none; border-color:var(--accent); }
           .catch(() => ''),
       ),
     )
-    for (const html of pages) {
+    for (const [i, html] of pages.entries()) {
       if (!html) continue
       // keep block boundaries as line breaks, then drop anything that isn't readable content
       const doc = new DOMParser().parseFromString(html.replace(/<\/(p|div|li|h[1-6]|section|article|header|footer|tr)>|<br\s*\/?>/gi, '\n$&'), 'text/html')
       doc.querySelectorAll('script,style,noscript,template,svg').forEach((n) => n.remove())
       const text = tidy(doc.body?.textContent || '')
       if (text.length > 200 && !parts.includes(text)) parts.push(text) // client-rendered shells have almost no text
+      for (const l of linksOf(doc, links[i], tidy, (n) => n.textContent)) if (!outside.includes(l)) outside.push(l)
     }
-    siteText = parts.join('\n\n').slice(0, MAX_SITE)
+    const linkBlock = outside.length ? ('Links:\n' + outside.join('\n')).slice(0, MAX_LINKS) : ''
+    siteText = (parts.join('\n\n').slice(0, MAX_SITE - linkBlock.length) + '\n\n' + linkBlock).trim()
     try {
       sessionStorage.setItem('glance-site', siteText)
     } catch {}
