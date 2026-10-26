@@ -44,6 +44,7 @@
 .root { --accent:${cfg.accent}; --head:${cfg.head}; --on-accent:${cfg.onAccent}; --size:${cfg.size}px; --radius:${cfg.radius};
   --bg:#131418; --fg:#ecedee; --muted:#9a9da4; --line:rgba(255,255,255,.09); --bubble:#0b0c0e; --field:#0b0c0e;
   position:fixed; bottom:16px; ${cfg.position}:16px; z-index:2147483000; display:flex; flex-direction:column;
+  pointer-events:none; /* the box spans the closed panel's space; only real controls take clicks (see .dock > *, .open .panel) */
   align-items:${cfg.position === 'left' ? 'flex-start' : 'flex-end'}; gap:12px;
   font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--fg); -webkit-font-smoothing:antialiased; }
 .root.light { --bg:#ffffff; --fg:#15171a; --muted:#5d636b; --line:rgba(0,0,0,.1); --bubble:#f1f2f4; --field:#f7f7f8; }
@@ -79,6 +80,7 @@ button { font:inherit; color:inherit; cursor:pointer; }
 @keyframes scan { from { transform:translateX(-3px); } to { transform:translateX(3px); } }
 
 .dock { display:flex; align-items:flex-end; gap:12px; flex-direction:${cfg.position === 'left' ? 'row-reverse' : 'row'}; }
+.dock > * { pointer-events:auto; }
 .avatar { padding:0; border:0; background:none; border-radius:var(--radius); animation:float 3.8s ease-in-out infinite; transition:scale .2s; }
 .avatar:active { scale:.95; }
 @keyframes float { 50% { transform:translateY(-7px); } }
@@ -91,7 +93,7 @@ button { font:inherit; color:inherit; cursor:pointer; }
   border:1px solid var(--line); border-radius:16px; background:var(--bg); box-shadow:0 24px 80px rgba(0,0,0,.45);
   transform-origin:bottom ${cfg.position}; opacity:0; visibility:hidden; transform:translateY(16px) scale(.96);
   transition:opacity .35s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1), visibility 0s .45s; }
-.open .panel { opacity:1; visibility:visible; transform:none; transition-delay:0s; }
+.open .panel { opacity:1; visibility:visible; transform:none; transition-delay:0s; pointer-events:auto; }
 header { display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--line); }
 .title { margin:0; font-weight:600; }
 .sub { margin:0; font-size:12px; color:var(--muted); }
