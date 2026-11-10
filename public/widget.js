@@ -404,7 +404,8 @@ input:focus { outline:none; border-color:var(--accent); }
       rec.onresult = (e) => (input.value = heard = [...e.results].map((r) => r[0].transcript).join(' '))
       rec.onerror = (e) => {
         if (/not-allowed|service-not-allowed/.test(e.error)) problem = 'Microphone is blocked'
-        else if (e.error === 'network') problem = 'Voice needs an internet connection'
+        else if (e.error === 'network') problem = 'Voice is not available in this browser. Try Chrome'
+        else if (e.error === 'audio-capture') problem = 'No microphone found'
       }
       rec.onend = () => {
         this.rec = null
