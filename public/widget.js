@@ -440,6 +440,9 @@ input:focus { outline:none; border-color:var(--accent); }
       const piece = text.slice(this.said || 0, end).trim()
       if (!piece || (!final && piece.length < 25)) return
       this.said = end
+      this.utter(piece)
+    }
+    utter(piece) {
       const u = new SpeechSynthesisUtterance(piece)
       const v = pickVoice()
       u.lang = v?.lang || lang
@@ -591,6 +594,7 @@ input:focus { outline:none; border-color:var(--accent); }
             : e.message === 'rate_limited'
               ? 'Too many questions in a short time. Give it a minute and try again.'
               : `Something went wrong on my side. Try again in a moment.${reach}`
+        if (this.spoken && 'speechSynthesis' in window) this.utter(bubble.textContent) // a voice user hears errors too
         this.setBase('idle')
         this.flash('sad', 2200)
       } finally {
