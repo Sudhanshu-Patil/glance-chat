@@ -401,13 +401,20 @@ input:focus { outline:none; border-color:var(--accent); }
         input.placeholder = 'Listening…'
         this.setBase('surprised')
       }
-      rec.onresult = (e) => (input.value = heard = [...e.results].map((r) => r[0].transcript).join(' '))
+      // Chrome does not always end on its own, so: 1.5s with no new words after you spoke sends it, 8s of silence gives up.
+      let timer = setTimeout(() => rec.stop(), 8000)
+      rec.onresult = (e) => {
+        input.value = heard = [...e.results].map((r) => r[0].transcript).join(' ')
+        clearTimeout(timer)
+        timer = setTimeout(() => rec.stop(), 1500)
+      }
       rec.onerror = (e) => {
         if (/not-allowed|service-not-allowed/.test(e.error)) problem = 'Microphone is blocked'
         else if (e.error === 'network') problem = 'Voice is not available in this browser. Try Chrome'
         else if (e.error === 'audio-capture') problem = 'No microphone found'
       }
       rec.onend = () => {
+        clearTimeout(timer)
         this.rec = null
         mic.setAttribute('aria-pressed', 'false')
         input.placeholder = problem || 'Ask a question'
