@@ -79,6 +79,7 @@ Everything is set with attributes on the script tag. All are optional except `da
 | `data-contact` | none | Email shown if the bot is offline or fails |
 | `data-api` | `{script origin}/api/chat` | Custom endpoint, if you host the API elsewhere |
 | `data-read-site` | on | Read your portfolio's pages for answers. `off` uses only `RESUME_TEXT` or `knowledge.md` |
+| `data-voice` | on | A small mic button in the chat: tap, speak, and the question is sent when you stop talking. Questions asked this way are answered out loud too. `off` removes it. Shown only in browsers that support speech recognition (Chrome, Edge, Safari) |
 | `data-manual` | off | Don't mount automatically; call `Glance.mount()` yourself |
 
 Example:
@@ -153,6 +154,7 @@ No `npm install` needed: there are no dependencies.
 ## Privacy and safety
 
 - Questions, along with your site's public text, go from the visitor's browser to your Vercel function, then to Groq. Nothing is stored. The widget reads only pages on your own site, and never sends cookies when fetching them.
+- Voice uses the visitor's browser speech engine, so there is no extra server or key. Their browser vendor's speech service (Google for Chrome, Apple for Safari) hears the audio, and nothing is sent to or stored on your deployment except the transcribed question. Set `data-voice="off"` to disable it.
 - Model output is only ever inserted as text, never as HTML.
 - Everything on your site and in `RESUME_TEXT` or `knowledge.md` can be repeated to anyone who asks, so only include what you'd put on your public site.
 

@@ -34,10 +34,24 @@
         .slice(0, 4),
       contact: d.contact || '',
       readSite: d.readSite !== 'off',
+      voice: d.voice !== 'off', // the mic button appears only where the browser supports speech recognition
       onAccent: lum > 0.4 ? '#0b0c0e' : '#ffffff',
     }
   }
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+  const lang = navigator.language || 'en-US'
+
+  // The browser's own speech engine: free, no keys. Prefers a natural voice in the visitor's language.
+  // shortcut: voice quality depends on the visitor's device; swap in a hosted TTS if a nicer voice is needed.
+  function pickVoice() {
+    const base = lang.slice(0, 2).toLowerCase()
+    const rank = (v) => (/Natural|Online/i.test(v.name) ? 0 : /Google/i.test(v.name) ? 2 : 4) + (v.lang.replace('_', '-').toLowerCase() === lang.toLowerCase() ? 0 : 1)
+    return speechSynthesis
+      .getVoices()
+      .filter((v) => v.lang.toLowerCase().startsWith(base))
+      .sort((a, b) => rank(a) - rank(b))[0]
+  }
 
   const css = (cfg) => `
 :host { all: initial; }
@@ -116,6 +130,11 @@ form { display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); }
 input { flex:1; min-width:0; padding:10px 16px; font:inherit; color:var(--fg); background:var(--field); border:1px solid var(--line); border-radius:999px; }
 input::placeholder { color:var(--muted); }
 input:focus { outline:none; border-color:var(--accent); }
+.mic { flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border:1px solid var(--line);
+  border-radius:50%; background:none; color:var(--muted); transition:color .2s, background .2s; }
+.mic:hover { color:var(--fg); }
+.mic[aria-pressed=true] { background:var(--accent); border-color:var(--accent); color:var(--on-accent); animation:pulse 1.2s ease-in-out infinite; }
+.mic:disabled { opacity:.4; cursor:default; }
 .send { flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border:0; border-radius:50%;
   background:var(--accent); color:var(--on-accent); transition:opacity .2s, scale .2s; }
 .send:active { scale:.95; }
@@ -246,14 +265,16 @@ input:focus { outline:none; border-color:var(--accent); }
     <div class="list" aria-live="polite" data-lenis-prevent></div>
     <form><label class="sr" for="glance-q">Your question</label>
       <input id="glance-q" maxlength="600" autocomplete="off" placeholder="Ask a question">
+      ${this.cfg.voice && SR ? '<button class="mic" type="button" aria-label="Ask by voice" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>' : ''}
       <button class="send" type="submit" aria-label="Send" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg></button>
     </form>
   </section>
   <div class="dock"><button class="hint" type="button" hidden></button><button class="avatar" type="button" aria-expanded="false">${robot(false)}</button></div>
 </div>`
       const $ = (s) => root.querySelector(s)
-      this.ui = { root: $('.root'), panel: $('.panel'), list: $('.list'), form: $('form'), input: $('input'), send: $('.send'), avatar: $('.avatar'), hint: $('.hint') }
-      const { panel, avatar, hint, input, send, form } = this.ui
+      this.ui = { root: $('.root'), panel: $('.panel'), list: $('.list'), form: $('form'), input: $('input'), send: $('.send'), mic: $('.mic'), avatar: $('.avatar'), hint: $('.hint') }
+      const { panel, avatar, hint, input, send, form, mic } = this.ui
+      mic?.addEventListener('click', () => this.listen())
       panel.setAttribute('aria-label', this.cfg.title)
       $('.title').textContent = this.cfg.title
       avatar.setAttribute('aria-label', this.cfg.title)
@@ -307,6 +328,7 @@ input:focus { outline:none; border-color:var(--accent); }
 
     // Removed (or re-mounted by Glance.mount): stop every timer and listener.
     disconnectedCallback() {
+      this.stopVoice()
       this.off?.forEach((f) => f())
       ;[this.back, this.blinkT, this.hintT].forEach(clearTimeout)
     }
@@ -361,6 +383,71 @@ input:focus { outline:none; border-color:var(--accent); }
       this.off.push(() => clearInterval(idle))
     }
 
+    // --- voice -------------------------------------------------------------
+    // Tap the mic and talk; the browser decides when you have finished and the question is sent.
+    // Questions asked this way are answered out loud too. Tapping again sends early or interrupts the answer.
+    listen() {
+      if (this.rec) return this.rec.stop()
+      this.hush()
+      // iOS Safari only lets speech start from a tap, so prime it with a silent utterance here.
+      if ('speechSynthesis' in window) speechSynthesis.speak(new SpeechSynthesisUtterance(''))
+      const { input, mic } = this.ui
+      let heard = '', problem = ''
+      const rec = (this.rec = new SR())
+      rec.lang = lang
+      rec.interimResults = true
+      rec.onstart = () => {
+        mic.setAttribute('aria-pressed', 'true')
+        input.placeholder = 'Listening…'
+        this.setBase('surprised')
+      }
+      rec.onresult = (e) => (input.value = heard = [...e.results].map((r) => r[0].transcript).join(' '))
+      rec.onerror = (e) => {
+        if (/not-allowed|service-not-allowed/.test(e.error)) problem = 'Microphone is blocked'
+        else if (e.error === 'network') problem = 'Voice needs an internet connection'
+      }
+      rec.onend = () => {
+        this.rec = null
+        mic.setAttribute('aria-pressed', 'false')
+        input.placeholder = problem || 'Ask a question'
+        this.setBase('idle')
+        if (heard.trim() && !rec.cancelled) this.ask(heard, true)
+        else if (!heard.trim()) input.value = ''
+      }
+      try {
+        rec.start()
+      } catch {
+        this.rec = null
+      }
+    }
+    // Speak the answer sentence by sentence as it streams in, so the voice starts before the answer is finished.
+    speak(full, final) {
+      if (!this.spoken || !('speechSynthesis' in window)) return
+      const text = splitAnswer(full)[0].replace(/\*\*/g, '').replace(/^\s*[-•]\s+/gm, '')
+      let end = text.length
+      if (!final) {
+        end = 0
+        for (const m of text.matchAll(/[.!?](?=\s)|\n/g)) end = m.index + 1
+      }
+      const piece = text.slice(this.said || 0, end).trim()
+      if (!piece || (!final && piece.length < 25)) return
+      this.said = end
+      const u = new SpeechSynthesisUtterance(piece)
+      const v = pickVoice()
+      u.lang = v?.lang || lang
+      if (v) u.voice = v
+      speechSynthesis.speak(u)
+    }
+    hush() {
+      this.said = 0
+      this.spoken = false
+      if ('speechSynthesis' in window) speechSynthesis.cancel()
+    }
+    stopVoice() {
+      if (this.rec) (this.rec.cancelled = true), this.rec.abort()
+      this.hush()
+    }
+
     // --- panel -------------------------------------------------------------
     // quiet: open without the greeting animation or stealing focus (used for live previews).
     toggle(force, quiet = false) {
@@ -378,7 +465,10 @@ input:focus { outline:none; border-color:var(--accent); }
         if (quiet) return
         this.flash('surprised', 300, () => this.flash('happy', 1000))
         setTimeout(() => input.focus(), 50)
-      } else if (!quiet) avatar.focus()
+      } else {
+        this.stopVoice()
+        if (!quiet) avatar.focus()
+      }
     }
 
     // --- messages ----------------------------------------------------------
@@ -422,10 +512,13 @@ input:focus { outline:none; border-color:var(--accent); }
       this.ui.list.scrollTop = this.ui.list.scrollHeight
     }
 
-    async ask(text) {
+    async ask(text, spoken = false) {
       const q = text.trim().slice(0, 600)
       if (!q || this.busy) return
-      const { list, input, send } = this.ui
+      const { list, input, send, mic } = this.ui
+      this.hush()
+      this.spoken = spoken // answered out loud only when it was asked by voice
+      if (mic) mic.disabled = true
       this.chips([])
       list.querySelector('.intro')?.remove()
       this.messages.push({ role: 'user', content: q })
@@ -466,9 +559,11 @@ input:focus { outline:none; border-color:var(--accent); }
           }
           out += dec.decode(value, { stream: true })
           this.rich(bubble, splitAnswer(out)[0])
+          this.speak(out)
           this.scroll()
         }
         if (!out) throw new Error('empty')
+        this.speak(out, true)
         this.messages.push({ role: 'assistant', content: out })
         const asked = new Set(this.messages.filter((m) => m.role === 'user').map((m) => m.content))
         const next = splitAnswer(out)[1].filter((s) => !asked.has(s))
@@ -492,6 +587,7 @@ input:focus { outline:none; border-color:var(--accent); }
         this.flash('sad', 2200)
       } finally {
         this.busy = false
+        if (mic) mic.disabled = false
         send.disabled = !input.value.trim()
         this.scroll()
       }
