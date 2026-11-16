@@ -134,6 +134,7 @@ input:focus { outline:none; border-color:var(--accent); }
   border-radius:50%; background:none; color:var(--muted); transition:color .2s, background .2s; }
 .mic:hover { color:var(--fg); }
 .mic[aria-pressed=true] { background:var(--accent); border-color:var(--accent); color:var(--on-accent); animation:pulse 1.2s ease-in-out infinite; }
+.mic.stop { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
 .mic:disabled { opacity:.4; cursor:default; }
 .send { flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border:0; border-radius:50%;
   background:var(--accent); color:var(--on-accent); transition:opacity .2s, scale .2s; }
@@ -388,6 +389,8 @@ input:focus { outline:none; border-color:var(--accent); }
     // Questions asked this way are answered out loud too. Tapping again sends early or interrupts the answer.
     listen() {
       if (this.rec) return this.rec.stop()
+      if (this.talking) return this.hush() // while it speaks, the button is a stop button; the next tap listens
+      if (this.busy) return
       this.hush()
       // iOS Safari only lets speech start from a tap, so prime it with a silent utterance here.
       if ('speechSynthesis' in window) speechSynthesis.speak(new SpeechSynthesisUtterance(''))
@@ -447,11 +450,24 @@ input:focus { outline:none; border-color:var(--accent); }
       const v = pickVoice()
       u.lang = v?.lang || lang
       if (v) u.voice = v
+      u.onend = u.onerror = () => speechSynthesis.speaking || speechSynthesis.pending || this.setTalking(false)
+      this.setTalking(true)
       speechSynthesis.speak(u)
+    }
+    // While the voice is talking the mic button shows a stop square, so the answer can be cut off without recording.
+    setTalking(on) {
+      const mic = this.ui?.mic
+      if (!mic || this.talking === on) return
+      this.talking = on
+      this.micHTML ||= mic.innerHTML
+      mic.innerHTML = on ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>' : this.micHTML
+      mic.classList.toggle('stop', on)
+      mic.setAttribute('aria-label', on ? 'Stop speaking' : 'Ask by voice')
     }
     hush() {
       this.said = 0
       this.spoken = false
+      this.setTalking(false)
       if ('speechSynthesis' in window) speechSynthesis.cancel()
     }
     stopVoice() {
@@ -526,10 +542,9 @@ input:focus { outline:none; border-color:var(--accent); }
     async ask(text, spoken = false) {
       const q = text.trim().slice(0, 600)
       if (!q || this.busy) return
-      const { list, input, send, mic } = this.ui
+      const { list, input, send } = this.ui
       this.hush()
       this.spoken = spoken // answered out loud only when it was asked by voice
-      if (mic) mic.disabled = true
       this.chips([])
       list.querySelector('.intro')?.remove()
       this.messages.push({ role: 'user', content: q })
@@ -599,7 +614,6 @@ input:focus { outline:none; border-color:var(--accent); }
         this.flash('sad', 2200)
       } finally {
         this.busy = false
-        if (mic) mic.disabled = false
         send.disabled = !input.value.trim()
         this.scroll()
       }
