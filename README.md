@@ -1,6 +1,8 @@
+
 # Glance
 
-<p align="center"><img src="docs/demo.gif" alt="Glance robot following the cursor, answering a question, then switching colours and theme" width="344"></p>
+https://github.com/user-attachments/assets/e5b176f1-4bdc-4f63-94b6-439178d3e692
+
 
 A floating AI assistant for your portfolio, with a little robot that has moods. It follows the cursor, blinks, gets happy, thinks while it answers, dozes off when you leave it alone, and answers visitors' questions about you. **It reads your portfolio by itself**, so there's nothing to write or paste.
 
